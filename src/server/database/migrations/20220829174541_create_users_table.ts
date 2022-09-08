@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string('last_name', 50).nullable();
         table.string('phone', 15);
         table.string('password').nullable();
-        table.specificType('role_id', 'TINYINT(1)').comment('1-Admin');
+        table.specificType('role', 'TINYINT(1)').comment('1-Admin');
         table
             .timestamp('created_at')
             .notNullable()
