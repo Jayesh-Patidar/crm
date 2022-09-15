@@ -2,9 +2,7 @@ const appStyles = {
     wrapper: {
         display: 'flex',
     },
-    mainPanel: {
-        
-    }
+    mainPanel: {},
 };
 
 export default appStyles;

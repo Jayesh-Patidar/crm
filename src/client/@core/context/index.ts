@@ -1,1 +1,1 @@
-export * from './settingsContext'
+export * from './settingsContext';

@@ -1,7 +1,7 @@
-import { Settings } from '@app/client/@core/context';
-import { Box, useTheme } from '@mui/material';
 import { ReactNode } from 'react';
 import FooterContent from './FooterContent';
+import { Box, useTheme } from '@mui/material';
+import { Settings } from '@app/client/@core/settings';
 
 interface Props {
     settings: Settings;

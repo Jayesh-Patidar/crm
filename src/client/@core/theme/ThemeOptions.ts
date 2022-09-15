@@ -1,6 +1,6 @@
 import { deepmerge } from '@mui/utils';
 import { ThemeOptions } from '@mui/material';
-import { Settings } from '@app/client/@core/context';
+import { Settings } from '../settings';
 
 // ** Theme Override Imports
 import palette from './palette';

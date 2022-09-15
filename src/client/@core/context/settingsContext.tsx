@@ -3,10 +3,17 @@ import themeConfig from '@app/client/configs/themeConfig';
 import { createContext, ReactNode, useState } from 'react';
 import { ContentWidth, ThemeColor } from '@app/client/@core/layouts';
 
+export type Snackbar = {
+    isVisible: boolean;
+    message?: string;
+    variant?: string;
+};
+
 export type Settings = {
     mode: PaletteMode;
     themeColor: ThemeColor;
     contentWidth: ContentWidth;
+    snackbar: Snackbar;
 };
 
 export type SettingsContextValue = {
@@ -18,6 +25,9 @@ const initialSettings: Settings = {
     themeColor: 'primary',
     mode: themeConfig.mode,
     contentWidth: themeConfig.contentWidth,
+    snackbar: {
+        isVisible: false,
+    },
 };
 
 /** Create Context */

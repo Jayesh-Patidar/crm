@@ -10,5 +10,6 @@ import { UserRepositoryDatabase } from './repositories';
         UserService,
         { provide: USER_REPOSITORY, useClass: UserRepositoryDatabase },
     ],
+    exports: [{ provide: USER_REPOSITORY, useClass: UserRepositoryDatabase }],
 })
 export class UserModule {}

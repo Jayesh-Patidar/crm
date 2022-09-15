@@ -1,2 +1,2 @@
-export * from './Contract'
-export * from './Database'
+export * from './Contract';
+export * from './Database';

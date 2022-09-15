@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { env } from './src/server/core/helper';
+import { env } from './src/server/core';
 import { knexSnakeCaseMappers } from 'objection';
 
 module.exports = {

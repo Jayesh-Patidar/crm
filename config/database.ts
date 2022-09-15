@@ -1,5 +1,5 @@
 import { registerAs } from '@nestjs/config';
-import { env } from '@app/server/core/helper';
+import { env } from '@app/server/core';
 
 export default registerAs('database', () => ({
   client: env('DB_TYPE', 'mysql2'),

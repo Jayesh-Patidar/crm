@@ -1,4 +1,3 @@
-import { Settings } from '@app/client/@core/context';
 import {
     createTheme,
     CssBaseline,
@@ -7,6 +6,7 @@ import {
     responsiveFontSizes,
 } from '@mui/material';
 import { ReactNode } from 'react';
+import { Settings } from '../settings';
 import themeOptions from './ThemeOptions';
 
 import overrides from './overrides';

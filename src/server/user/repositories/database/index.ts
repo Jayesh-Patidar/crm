@@ -1,1 +1,1 @@
-export * from './UserDatabase'
+export * from './UserDatabase';

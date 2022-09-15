@@ -1,1 +1,1 @@
-export * from './ThemeComponent'
+export * from './ThemeComponent';

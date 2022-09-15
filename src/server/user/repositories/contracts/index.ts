@@ -1,1 +1,1 @@
-export * from './UserContract'
+export * from './UserContract';

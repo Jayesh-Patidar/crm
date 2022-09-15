@@ -16,7 +16,7 @@ export class Model extends BaseModel {
      */
     protected static visible: string[] = [];
 
-    constructor(hidden?: string[]) {
+    constructor() {
         super();
 
         Object.entries(this.constructor).forEach(

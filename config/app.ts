@@ -1,5 +1,5 @@
+import { env } from '@app/server/core';
 import { registerAs } from '@nestjs/config';
-import { env } from '@app/server/core/helper';
 
 export default registerAs('app', () => ({
   name: env('APP_NAME', 'CRM'),

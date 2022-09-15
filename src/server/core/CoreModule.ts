@@ -1,14 +1,18 @@
-import { Module } from "@nestjs/common";
-import Knex  from "knex";
-import * as KnexConfig from '../../../knexfile'
-import { KNEX_CONNECTION } from "./constants";
-import { Model } from "./database";
+import { Global, Module } from '@nestjs/common';
+import Knex from 'knex';
+import * as KnexConfig from '../../../knexfile';
+import { KNEX_CONNECTION } from './constants';
+import { Model } from './database';
+import { Validator } from './validator';
 
-Model.knex(Knex(KnexConfig))
+Model.knex(Knex(KnexConfig));
 
+@Global()
 @Module({
     providers: [
-        { provide: KNEX_CONNECTION, useFactory:async () => Knex(KnexConfig)}
-    ]
+        Validator,
+        { provide: KNEX_CONNECTION, useFactory: async () => Knex(KnexConfig) },
+    ],
+    exports: [Validator],
 })
 export class CoreModule {}

@@ -1,1 +1,1 @@
-export * from './useSetting'
+export * from './useSetting';

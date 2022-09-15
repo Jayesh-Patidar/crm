@@ -1,4 +1,4 @@
-import { Model, TransactionOrKnex } from 'objection';
+import type { QueryBuilder, TransactionOrKnex } from 'objection';
 
 export interface RepositoryContract<T extends Record<string, any>> {
     model: any;
@@ -6,5 +6,8 @@ export interface RepositoryContract<T extends Record<string, any>> {
     /**
      * Get new instance of model
      */
-    query(args?: TransactionOrKnex): Promise<T[]>;
+    query(
+        args?: TransactionOrKnex,
+        withSoftDeleted?: boolean,
+    ): QueryBuilder<any, any>;
 }

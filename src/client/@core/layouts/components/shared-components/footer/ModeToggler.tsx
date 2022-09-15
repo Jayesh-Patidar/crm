@@ -1,4 +1,4 @@
-import { Settings } from "@app/client/@core/context";
+import { Settings } from "@app/client/@core/settings";
 import { DarkMode, LightMode } from "@mui/icons-material";
 import { IconButton, PaletteMode } from "@mui/material";
 

@@ -1,1 +1,1 @@
-export * from './InjectModel'
+export * from './InjectModel';
