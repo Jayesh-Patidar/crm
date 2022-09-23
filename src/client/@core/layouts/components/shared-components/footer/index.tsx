@@ -1,18 +1,18 @@
 import { ReactNode } from 'react';
 import FooterContent from './FooterContent';
 import { Box, useTheme } from '@mui/material';
-import { Settings } from '@app/client/@core/settings';
+import { useSettings } from '@app/client/@core/hooks';
 
 interface Props {
-    settings: Settings;
-    saveSettings: (values: Settings) => void;
     footerContent?: (props?: any) => ReactNode;
 }
 
 const Footer = (props: Props) => {
-    const { settings, footerContent: userFooterContent } = props;
+    const { footerContent: userFooterContent } = props;
 
     const theme = useTheme();
+
+    const { settings } = useSettings();
 
     const { contentWidth } = settings;
 

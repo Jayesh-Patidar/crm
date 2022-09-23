@@ -6,13 +6,11 @@ import {
     Toolbar as MuiToolbar,
     ToolbarProps,
 } from '@mui/material';
-import { Settings } from '@app/client/@core/context';
+import { useSettings } from '@app/client/@core/hooks';
 
 interface Props {
     hidden: boolean;
-    settings: Settings;
     toggleNavVisibility: () => void;
-    saveSettings: (values: Settings) => void;
     verticalAppBarContent?: (props?: any) => ReactNode;
 }
 
@@ -41,8 +39,9 @@ const Toolbar = styled(MuiToolbar)<ToolbarProps>(({ theme }) => ({
 }));
 
 const LayoutAppBar = (props: Props) => {
-    const { settings, verticalAppBarContent: userVerticalAppBarContent } =
+    const { verticalAppBarContent: userVerticalAppBarContent } =
         props;
+    const { settings } = useSettings()
 
     const theme = useTheme();
 

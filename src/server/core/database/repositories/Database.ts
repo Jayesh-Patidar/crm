@@ -15,8 +15,21 @@ export class DatabaseRepository<T extends Record<string, any>>
     ): QueryBuilder<any, any> {
         return this.model
             .query(args)
-            .modify((query) =>
+            .modify((query: QueryBuilder<any, any>) =>
                 withSoftDeleted ? query : query.whereNull('deleted_at'),
             );
+    }
+
+    async firstOrCreate(
+        condition: Record<string, any>,
+        data: Record<string, any>,
+    ): Promise<T> {
+        const record = await this.query().where(condition).first();
+
+        if (record) {
+            return record;
+        }
+
+        return this.query().insertAndFetch({ ...condition, ...data });
     }
 }

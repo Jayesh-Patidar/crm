@@ -13,23 +13,38 @@ import {
     InputAdornment,
     IconButton,
     Checkbox,
-    Button,
     TextField,
 } from '@mui/material';
-import { LoadingButton } from '@mui/lab'
 import Link from 'next/link';
+import { User } from '@app/shared';
 import { useRouter } from 'next/router';
+import { LoadingButton } from '@mui/lab';
 import { useAxios } from '@app/client/utils';
+import { connect, useSelector } from 'react-redux';
+import { AppState } from '@app/client/ducks/store';
 import themeConfig from '@app/client/configs/themeConfig';
 import BlankLayout from '@app/client/layouts/BlankLayout';
+import { selectIsLoading } from '@app/client/@core/ducks';
+import { setAuthenticatedUser } from '@app/client/ducks/auth';
 import { ReactNode, useState, ChangeEvent, MouseEvent } from 'react';
+import {
+    ActionCreatorWithOptionalPayload,
+    AnyAction,
+    bindActionCreators,
+    Dispatch,
+} from '@reduxjs/toolkit';
 import { VisibilityOffOutlined, VisibilityOutlined } from '@mui/icons-material';
 import FooterIllustrationsV1 from '@app/client/views/pages/auth/FooterIllustration';
 
+interface Props {
+    auth: User;
+    login: ActionCreatorWithOptionalPayload<User, string>;
+}
 interface State {
     phone: string;
     password: string;
     showPassword: boolean;
+    rememberMe: boolean;
 }
 
 interface LoginData {
@@ -39,7 +54,7 @@ interface LoginData {
 }
 
 type Errors = {
-    [key in keyof LoginData]: string[] | undefined;
+    [key in keyof LoginData]?: string[];
 };
 
 const Card = styled(MuiCard)<CardProps>(({ theme }) => ({
@@ -61,12 +76,14 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(
     }),
 );
 
-const LoginPage = () => {
+const LoginPage = ({ login }: Props) => {
     const [state, setState] = useState<State>({
         phone: '',
         password: '',
         showPassword: false,
+        rememberMe: false,
     });
+    const isLoading = useSelector(selectIsLoading);
 
     const [errors, setErrors] = useState<Errors>({
         phone: [],
@@ -76,19 +93,18 @@ const LoginPage = () => {
 
     const theme = useTheme();
     const router = useRouter();
-    const [response, axios] = useAxios();
+    const { axios } = useAxios();
 
     const handleChange =
         (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
-            setState({ ...state, [prop]: event.target.value });
+            const value =
+                prop === 'phone'
+                    ? event.target.value.slice(0, 10)
+                    : prop === 'rememberMe'
+                    ? event.target.checked
+                    : event.target.value;
+            setState({ ...state, [prop]: value });
         };
-
-    const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setState({
-            ...state,
-            phone: event.target.value.slice(0, 10),
-        });
-    };
 
     const handleClickShowPassword = () => {
         setState({ ...state, showPassword: !state.showPassword });
@@ -102,26 +118,26 @@ const LoginPage = () => {
         setErrors({
             phone: [],
             password: [],
-            rememberMe: [],
         });
 
         const loginData: LoginData = {
             phone: `+91 ${state.phone}`,
             password: state.password,
-            rememberMe: false,
+            rememberMe: state.rememberMe,
         };
-        await axios({
+
+        const { data, error } = await axios<User>({
             url: 'login',
             method: 'post',
             data: loginData,
         });
 
-        const { data, error } = response;
-        console.log("🚀 ~ file: login.tsx ~ line 119 ~ handleLogin ~ data", data)
-
         if (error) {
-            setErrors({ phone: error.phone, password: error.password });
+            return setErrors({ phone: error.phone, password: error.password });
         }
+
+        login(data);
+        router.push('/');
     };
 
     return (
@@ -246,7 +262,7 @@ const LoginPage = () => {
                                 required={true}
                                 label="Phone"
                                 value={state.phone}
-                                onChange={handlePhoneChange}
+                                onChange={handleChange('phone')}
                                 error={!isEmpty(errors.phone)}
                                 helperText={first(errors.phone)}
                                 type="number"
@@ -305,6 +321,8 @@ const LoginPage = () => {
                             <FormControlLabel
                                 control={<Checkbox />}
                                 label="Remember Me"
+                                onChange={handleChange('rememberMe')}
+                                checked={state.rememberMe}
                             />
                             <Link passHref href="/">
                                 <LinkStyled onClick={(e) => e.preventDefault()}>
@@ -318,8 +336,7 @@ const LoginPage = () => {
                             variant="contained"
                             sx={{ marginBottom: 7 }}
                             onClick={handleLogin}
-                            loading={true}
-                            loadingPosition="end"
+                            loading={isLoading}
                         >
                             Login
                         </LoadingButton>
@@ -333,4 +350,12 @@ const LoginPage = () => {
 
 LoginPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>;
 
-export default LoginPage;
+const mapStateToProps = (state: AppState) => ({
+    auth: state.auth,
+});
+
+const mapDispatchToProps = (dispatch: Dispatch<AnyAction>) => ({
+    login: bindActionCreators(setAuthenticatedUser, dispatch),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginPage);

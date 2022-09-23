@@ -5,7 +5,7 @@ import {
     IsOptional,
     IsBoolean,
     IsNotEmpty,
-} from '@app/server/core/validator';
+} from '@app/server/core';
 
 export class LoginValidator {
     @IsDefined()

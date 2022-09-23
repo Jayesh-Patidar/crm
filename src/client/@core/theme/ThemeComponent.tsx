@@ -6,21 +6,21 @@ import {
     responsiveFontSizes,
 } from '@mui/material';
 import { ReactNode } from 'react';
-import { Settings } from '../settings';
 import themeOptions from './ThemeOptions';
 
 import overrides from './overrides';
 import typography from './typography';
 import themeConfig from '@app/client/configs/themeConfig';
 import GlobalStyling from './globalStyles';
+import { useSettings } from '../hooks';
 
 interface Props {
-    settings: Settings;
     children: ReactNode;
 }
 
 const ThemeComponent = (props: Props) => {
-    const { settings, children } = props;
+    const { children } = props;
+    const { settings } = useSettings()
 
     // ** Merged ThemeOptions of Core and User
     const coreThemeConfig = themeOptions(settings);

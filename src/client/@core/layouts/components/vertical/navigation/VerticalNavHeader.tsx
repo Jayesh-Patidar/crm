@@ -1,4 +1,3 @@
-import { Settings } from '@app/client/@core/context';
 import themeConfig from '@app/client/configs/themeConfig';
 import {
     styled,
@@ -13,9 +12,7 @@ import { ReactNode } from 'react';
 
 interface Props {
     hidden: boolean;
-    settings: Settings;
     toggleNavVisibility: () => void;
-    saveSettings: (values: Settings) => void;
     verticalNavMenuBranding?: (props?: any) => ReactNode;
 }
 

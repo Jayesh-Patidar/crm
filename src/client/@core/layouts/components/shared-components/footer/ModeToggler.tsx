@@ -1,32 +1,32 @@
-import { Settings } from "@app/client/@core/settings";
-import { DarkMode, LightMode } from "@mui/icons-material";
-import { IconButton, PaletteMode } from "@mui/material";
+import { useSettings, useSnackbar } from '@app/client/@core/hooks';
+import { DarkMode, LightMode } from '@mui/icons-material';
+import { IconButton, PaletteMode } from '@mui/material';
 
-interface Props {
-    settings: Settings
-    saveSettings: (values: Settings) => void
-}
-
-const ModeToggler = (props: Props) => {
-    const { settings, saveSettings} = props
+const ModeToggler = () => {
+    const { settings, saveSettings } = useSettings();
+    const { toggleSnackbar } = useSnackbar();
 
     const handleModeChange = (mode: PaletteMode) => {
-        saveSettings({ ...settings, mode})
-    }
+        saveSettings({ mode });
+    };
 
     const handleModeToggle = () => {
         if (settings.mode === 'light') {
-            handleModeChange('dark')
+            handleModeChange('dark');
         } else {
-            handleModeChange('light')
+            handleModeChange('light');
         }
-    }
+    };
 
     return (
-        <IconButton color='inherit' aria-haspopup='true' onClick={handleModeToggle}>
+        <IconButton
+            color="inherit"
+            aria-haspopup="true"
+            onClick={handleModeToggle}
+        >
             {settings.mode === 'dark' ? <LightMode /> : <DarkMode />}
         </IconButton>
-    )
-}
+    );
+};
 
-export default ModeToggler
+export default ModeToggler;

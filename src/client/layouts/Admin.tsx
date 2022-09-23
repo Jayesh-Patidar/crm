@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import { useSettings } from '@app/client/@core/hooks';
 import { Theme, useMediaQuery } from '@mui/material';
 import VerticalLayout from '@app/client/@core/layouts/VerticalLayout';
 import VerticalAppBarContent from '@app/client/@core/layouts/components/vertical/AppBarContent';
@@ -10,8 +9,6 @@ interface Props {
 }
 
 const Admin = ({ children }: Props) => {
-    const { settings, saveSettings } = useSettings();
-
     /**
      *  The below variable will hide the current layout menu at given screen size.
      *  The menu will be accessible from the Hamburger icon only (Vertical Overlay Menu).
@@ -27,14 +24,10 @@ const Admin = ({ children }: Props) => {
     return (
         <VerticalLayout
             hidden={hidden}
-            settings={settings}
-            saveSettings={saveSettings}
             verticalNavItems={VerticalNavItems()}
             verticalAppBarContent={(props) => (
                 <VerticalAppBarContent
                     hidden={hidden}
-                    settings={settings}
-                    saveSettings={saveSettings}
                     toggleNavVisibility={props.toggleNavVisibility}
                 />
             )}

@@ -8,15 +8,20 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const config = app.get(ConfigService);
 
+    if (!config.get('auth.jwt.secret')) {
+        console.error('Invalid app key. Please provide an app key');
+        app.close();
+    }
+
     app.useGlobalGuards(new RequestGuard(), new ResponseGuard());
 
-    app.enableCors(config.get('cors'))
+    app.enableCors(config.get('cors'));
 
     const { httpAdapter } = app.get(HttpAdapterHost);
     app.useGlobalFilters(new ExceptionHandler(httpAdapter));
 
-    app.setGlobalPrefix('api')
-    
+    app.setGlobalPrefix('api');
+
     await app.listen(config.get('app.port'));
 }
 

@@ -1,22 +1,18 @@
-import { SyntheticEvent, Fragment } from 'react';
 import Head from 'next/head';
 import { AppProps } from 'next/app';
 import type { NextPage } from 'next';
+import { SyntheticEvent } from 'react';
+import { Close } from '@mui/icons-material';
 import Admin from '@app/client/layouts/Admin';
-import { Button, IconButton, Slide, Snackbar } from '@mui/material';
+import AuthGuard from '@app/client/guards/AuthGuard';
+import { useSnackbar } from '@app/client/@core/hooks';
 import themeConfig from '@app/client/configs/themeConfig';
+import { IconButton, Slide, Snackbar } from '@mui/material';
 import { CacheProvider, EmotionCache } from '@emotion/react';
 import { createEmotionCache } from '@app/client/@core/utils';
-import {
-    Settings,
-    SettingsConsumer,
-    SettingsProvider,
-} from '@app/client/@core/context';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistedStore, wrapper } from '@app/client/ducks/store';
 import ThemeComponent from '@app/client/@core/theme/ThemeComponent';
-import { Close } from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectSettings, setSettings } from '@app/client/@core/settings';
-import { wrapper } from '@app/client/ducks/store';
 
 type ExtendedAppProps = AppProps & {
     Component: NextPage;
@@ -34,74 +30,65 @@ const App = (props: ExtendedAppProps) => {
 
     const getLayout = Component.getLayout ?? ((page) => <Admin>{page}</Admin>);
 
-    const settings = useSelector(selectSettings)
-    console.log("🚀 ~ file: _app.tsx ~ line 38 ~ App ~ settings", settings)
-    const dispatch = useDispatch()
-    dispatch(setSettings({ ...settings, mode: 'dark' }))
-    console.log("🚀 ~ file: _app.tsx ~ line 38 ~ App ~ settings", settings)
+    const { snackbar, toggleSnackbar } = useSnackbar();
 
-    const handleClose = (
-        event: SyntheticEvent | Event,
-        settings: Settings,
-        saveSettings: (updatedSettings: Settings) => void,
-        reason?: string,
-    ) => {
+    const handleClose = (event: SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
             return;
         }
 
-        saveSettings({ ...settings, snackbar: { isVisible: false } });
+        toggleSnackbar();
     };
 
     return (
-        <CacheProvider value={emotionCache}>
-            <Head>
-                <title>{`${themeConfig.templateName} - Admin Panel`}</title>
-                <meta
-                    name="description"
-                    content={`${themeConfig.templateName}`}
-                />
-                <meta
-                    name="keywords"
-                    content="CRM, Computer, Repairing, Management"
-                />
-                <meta
-                    name="viewport"
-                    content="initial-scale=1,width=device-width"
-                />
-            </Head>
+        <PersistGate loading={null} persistor={persistedStore}>
+            <CacheProvider value={emotionCache}>
+                <Head>
+                    <title>{`${themeConfig.templateName} - Admin Panel`}</title>
+                    <meta
+                        name="description"
+                        content={`${themeConfig.templateName}`}
+                    />
+                    <meta
+                        name="keywords"
+                        content="CRM, Computer, Repairing, Management"
+                    />
+                    <meta
+                        name="viewport"
+                        content="initial-scale=1,width=device-width"
+                    />
+                </Head>
 
-            <ThemeComponent settings={settings}>
-                {getLayout(<Component {...pageProps} />)}
-                {/* <Snackbar
-                    open={settings.snackbar.isVisible}
-                    autoHideDuration={5000}
-                    onClose={(event, reason) =>
-                        handleClose(event, settings, saveSettings, reason)
-                    }
-                    anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center',
-                    }}
-                    TransitionComponent={(props) => (
-                        <Slide {...props} direction="down" />
-                    )}
-                    message={settings.snackbar.message}
-                    action={
-                        <IconButton
-                            size="small"
-                            aria-label="close"
-                            color="inherit"
-                            onClick={(event) =>
-                                handleClose(event, settings, saveSettings)
+                <AuthGuard>
+                    <ThemeComponent>
+                        {getLayout(<Component {...pageProps} />)}
+                        <Snackbar
+                            open={snackbar.isVisible}
+                            autoHideDuration={5000}
+                            onClose={handleClose}
+                            anchorOrigin={{
+                                vertical: 'top',
+                                horizontal: 'center',
+                            }}
+                            TransitionComponent={(props) => (
+                                <Slide {...props} direction="down" />
+                            )}
+                            message={snackbar.message}
+                            action={
+                                <IconButton
+                                    size="small"
+                                    aria-label="close"
+                                    color="inherit"
+                                    onClick={handleClose}
+                                >
+                                    <Close fontSize="small" />
+                                </IconButton>
                             }
-                        >
-                            <Close fontSize="small" />
-                        </IconButton>
-                    }
-                /> */}
-            </ThemeComponent>
-        </CacheProvider>
+                        />
+                    </ThemeComponent>
+                </AuthGuard>
+            </CacheProvider>
+        </PersistGate>
     );
 };
 

@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+
 /**
  * Get the value of key from env.
  * @param key string

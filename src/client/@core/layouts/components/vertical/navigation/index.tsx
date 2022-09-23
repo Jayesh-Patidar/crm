@@ -1,4 +1,3 @@
-import { Settings } from '@app/client/@core/context';
 import { ReactNode, useRef, useState } from 'react';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { VerticalNavItemsType } from '@app/client/@core/layouts/types';
@@ -11,13 +10,11 @@ import VerticalNavItems from './VerticalNavItems';
 interface Props {
     hidden: boolean;
     navWidth: number;
-    settings: Settings;
     children: ReactNode;
     navVisible: boolean;
     toggleNavVisibility: () => void;
     setNavVisible: (value: boolean) => void;
     verticalNavItems?: VerticalNavItemsType;
-    saveSettings: (values: Settings) => void;
     verticalNavMenuContent?: (props?: any) => ReactNode;
     afterVerticalNavMenuContent?: (props?: any) => ReactNode;
     beforeVerticalNavMenuContent?: (props?: any) => ReactNode;

@@ -1,15 +1,9 @@
-import {
-    Controller,
-    Inject,
-    Post,
-    Req,
-    Res,
-} from '@nestjs/common';
+import { Controller, Inject, Post, Req, Res } from '@nestjs/common';
 import { LOGIN_SERVICE } from '../constants';
+import { ApiController } from '@app/server/core/';
 import type { ILoginRequest } from '../interfaces';
-import { ApiController } from '@app/server/core/controllers';
-import type { Request, Response } from '@app/server/core/interfaces';
-import type { LoginServiceContract } from '../services/contracts';
+import type { LoginServiceContract } from '../services';
+import type { Request, Response } from '@app/server/core';
 
 @Controller('login')
 export class LoginController extends ApiController {

@@ -1,4 +1,4 @@
-import type { IUser } from '../interfaces';
+import { User } from '@app/shared';
 import { USER_REPOSITORY } from '../constants';
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserRepositoryContract } from '../repositories';
@@ -10,7 +10,7 @@ export class UserService {
         private userRepository: UserRepositoryContract,
     ) {}
 
-    async getAllUser(): Promise<Array<IUser>> {
+    async getAllUser(): Promise<Array<User>> {
         return this.userRepository.query();
     }
 }

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { SvgIconTypeMap } from '@mui/material';
-import { Settings } from '../settings';
+import { Settings } from '../ducks';
 
 export type ContentWidth = 'full' | 'boxed';
 
@@ -47,11 +47,9 @@ export type VerticalNavItemsType = (NavLink | NavSectionTitle)[];
 
 export type LayoutProps = {
     hidden: boolean;
-    settings: Settings;
     children: ReactNode;
     verticalNavItems?: VerticalNavItemsType;
     scrollToTop?: (props?: any) => ReactNode;
-    saveSettings: (values: Settings) => void;
     footerContent?: (props?: any) => ReactNode;
     verticalAppBarContent?: (props?: any) => ReactNode;
     verticalNavMenuContent?: (props?: any) => ReactNode;

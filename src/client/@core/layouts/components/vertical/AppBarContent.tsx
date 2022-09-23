@@ -1,4 +1,3 @@
-import { Settings } from '@app/client/@core/context';
 import { Menu, Search } from '@mui/icons-material';
 import {
     Box,
@@ -13,13 +12,11 @@ import UserDropdown from '../shared-components/UserDropdown';
 
 interface Props {
     hidden: boolean;
-    settings: Settings;
     toggleNavVisibility: () => void;
-    saveSettings: (values: Settings) => void;
 }
 
 const AppBarContent = (props: Props) => {
-    const { hidden, settings, saveSettings, toggleNavVisibility } = props;
+    const { hidden, toggleNavVisibility } = props;
 
     const hiddenSm = useMediaQuery((theme: Theme) =>
         theme.breakpoints.down('sm'),
@@ -64,7 +61,7 @@ const AppBarContent = (props: Props) => {
                 className="actions-right"
                 sx={{ display: 'flex', alignItems: 'center' }}
             >
-                <ModeToggler settings={settings} saveSettings={saveSettings} />
+                <ModeToggler />
                 <UserDropdown />
             </Box>
         </Box>

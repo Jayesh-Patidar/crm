@@ -22,6 +22,17 @@ const input = (theme: Theme) => {
                     '&.Mui-disabled:before': {
                         borderBottom: `1px solid ${theme.palette.text.disabled}`,
                     },
+                    '& input[type=number]': {
+                        '-moz-appearance': 'textfield',
+                    },
+                    '& input[type=number]::-webkit-outer-spin-button': {
+                        '-webkit-appearance': 'none',
+                        margin: 0,
+                    },
+                    '& input[type=number]::-webkit-inner-spin-button': {
+                        '-webkit-appearance': 'none',
+                        margin: 0,
+                    },
                 },
             },
         },
@@ -37,6 +48,17 @@ const input = (theme: Theme) => {
                     },
                     '&:hover:not(.Mui-disabled):before': {
                         borderBottom: `1px solid rgba(${theme.palette.customColors.main}, 0.32)`,
+                    },
+                    '& input[type=number]': {
+                        '-moz-appearance': 'textfield',
+                    },
+                    '& input[type=number]::-webkit-outer-spin-button': {
+                        '-webkit-appearance': 'none',
+                        margin: 0,
+                    },
+                    '& input[type=number]::-webkit-inner-spin-button': {
+                        '-webkit-appearance': 'none',
+                        margin: 0,
                     },
                 },
             },
@@ -56,6 +78,17 @@ const input = (theme: Theme) => {
                     },
                     '&.Mui-disabled .MuiOutlinedInput-notchedOutline': {
                         borderColor: theme.palette.text.disabled,
+                    },
+                    '& input[type=number]': {
+                        '-moz-appearance': 'textfield',
+                    },
+                    '& input[type=number]::-webkit-outer-spin-button': {
+                        '-webkit-appearance': 'none',
+                        margin: 0,
+                    },
+                    '& input[type=number]::-webkit-inner-spin-button': {
+                        '-webkit-appearance': 'none',
+                        margin: 0,
                     },
                 },
             },

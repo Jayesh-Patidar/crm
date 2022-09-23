@@ -1,7 +1,26 @@
-import { PersonOutline } from '@mui/icons-material';
-import { Avatar, Badge, Box, Divider, Menu, MenuItem, styled, Typography } from '@mui/material';
+import { getFullName, User } from '@app/shared';
+import { AppState } from '@app/client/ducks/store';
+import { Logout, PersonOutline } from '@mui/icons-material';
+import {
+    Avatar,
+    Badge,
+    Box,
+    Divider,
+    Menu,
+    MenuItem,
+    styled,
+    Typography,
+} from '@mui/material';
+import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { Fragment, SyntheticEvent, useState } from 'react';
+import { logoutAuthenticatedUser } from '@app/client/ducks/auth';
+import { ActionCreatorWithPayload, bindActionCreators } from '@reduxjs/toolkit';
+
+interface Props {
+    auth: User;
+    logout: ActionCreatorWithPayload<null, string>;
+}
 
 const BadgeContentSpan = styled('span')(({ theme }) => ({
     width: 8,
@@ -11,7 +30,9 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
     boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
 }));
 
-const UserDropdown = () => {
+const UserDropdown = (props: Props) => {
+    const { auth, logout } = props;
+
     const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 
     const router = useRouter();
@@ -26,6 +47,11 @@ const UserDropdown = () => {
         }
 
         setAnchorEl(null);
+    };
+
+    const handleLogout = () => {
+        handleDropdownClose();
+        logout(null);
     };
 
     const styles = {
@@ -52,41 +78,90 @@ const UserDropdown = () => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
                 <Avatar
-                    alt="Jayesh Patidar"
+                    alt={getFullName(auth)}
                     onClick={handleDropdownOpen}
                     sx={{ width: 40, height: 40 }}
                     src="/images/avatars/1.png"
                 />
             </Badge>
             <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={() => handleDropdownClose()}
-            sx={{ '& .MuiMenu-paper': { width: 230, marginTop: 4 }}}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right'}}
-            transformOrigin={{ vertical: 'top', horizontal: 'right'}}>
-                <Box sx={{pt: 2, pb: 3, px: 4}}>
-                    <Box sx={{display: 'flex', alignItems: 'center'}}>
-                        <Badge overlap='circular' badgeContent={<BadgeContentSpan />}
-                        anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}>
-                            <Avatar alt='Jayesh Patidar' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem'}} />
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => handleDropdownClose()}
+                sx={{ '& .MuiMenu-paper': { width: 230, marginTop: 4 } }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Box sx={{ pt: 2, pb: 3, px: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Badge
+                            overlap="circular"
+                            badgeContent={<BadgeContentSpan />}
+                            anchorOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'right',
+                            }}
+                        >
+                            <Avatar
+                                alt={getFullName(auth)}
+                                src={`https://ui-avatars.com/api/?name=${getFullName(
+                                    auth,
+                                )}`}
+                                sx={{ width: '2.5rem', height: '2.5rem' }}
+                            />
                         </Badge>
-                        <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column'}}>
-                            <Typography sx={{fontWeight: 600}}>Jayesh Patidar</Typography>
-                            <Typography variant='body2' sx={{fontSize: '0.8rem', color: 'text.disabled'}}>Admin</Typography>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                marginLeft: 3,
+                                alignItems: 'flex-start',
+                                flexDirection: 'column',
+                            }}
+                        >
+                            <Typography sx={{ fontWeight: 600 }}>
+                                {getFullName(auth)}
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    fontSize: '0.8rem',
+                                    color: 'text.disabled',
+                                }}
+                            >
+                                Admin
+                            </Typography>
                         </Box>
                     </Box>
                 </Box>
-                <Divider sx={{mt: 0, mb: 1}} />
-                <MenuItem sx={{p: 0}} onClick={() => handleDropdownClose()}>
+                <Divider sx={{ mt: 0, mb: 1 }} />
+                <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
                     <Box sx={styles}>
-                        <PersonOutline sx={{marginRight: 2}}/>
+                        <PersonOutline sx={{ marginRight: 2 }} />
                         Profile
                     </Box>
+                </MenuItem>
+                <Divider />
+                <MenuItem sx={{ py: 2 }} onClick={handleLogout}>
+                    <Logout
+                        sx={{
+                            marginRight: 2,
+                            fontSize: '1.375rem',
+                            color: 'text.secondary',
+                        }}
+                    />
+                    Logout
                 </MenuItem>
             </Menu>
         </Fragment>
     );
 };
 
-export default UserDropdown
+const mapStateToProps = (state: AppState) => ({
+    auth: state.auth,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    logout: bindActionCreators(logoutAuthenticatedUser, dispatch),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserDropdown);

@@ -5,16 +5,13 @@ import {
     SwipeableDrawerProps,
     useTheme,
 } from '@mui/material';
-import { Settings } from '@app/client/@core/context';
 
 interface Props {
     hidden: boolean;
     navWidth: number;
-    settings: Settings;
     navVisible: boolean;
     children: ReactNode;
     setNavVisible: (value: boolean) => void;
-    saveSettings: (value: Settings) => void;
 }
 
 const SwipeableDrawer = styled(MuiSwipeableDrawer)<SwipeableDrawerProps>({

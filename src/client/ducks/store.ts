@@ -1,12 +1,23 @@
+import { persistStore } from 'redux-persist';
 import { createWrapper } from 'next-redux-wrapper';
-import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import { persistedReducer } from './persistedReducer';
+import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
 
-const makeStore = () =>
-    configureStore({
-        reducer: persistedReducer,
-        devTools: true,
-    });
+const store = configureStore({
+    reducer: persistedReducer,
+    devTools: true,
+    middleware: (getDefaultMiddleware) => [
+        ...getDefaultMiddleware({
+            serializableCheck: {
+                ignoredActions: ['persist/PERSIST'],
+            },
+        }),
+    ],
+});
+
+export const persistedStore = persistStore(store);
+
+const makeStore = () => store;
 
 export type AppStore = ReturnType<typeof makeStore>;
 export type AppState = ReturnType<AppStore['getState']>;

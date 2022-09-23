@@ -1,4 +1,9 @@
-import { ArgumentsHost, Catch, HttpStatus, NotFoundException } from '@nestjs/common';
+import {
+    ArgumentsHost,
+    Catch,
+    HttpStatus,
+    NotFoundException,
+} from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Response } from '../interfaces';
 import { ValidationFailed } from './ValidationFailed';
@@ -13,7 +18,7 @@ export class ExceptionHandler extends BaseExceptionFilter {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
 
-        console.error('Error: ', exception)
+        console.error('Error: ', exception);
 
         if (exception instanceof ValidationFailed) {
             return response.error(
@@ -30,7 +35,7 @@ export class ExceptionHandler extends BaseExceptionFilter {
                 success: false,
                 code: exception.getStatus(),
                 message: exception.message,
-            })
+            });
         }
 
         let message =

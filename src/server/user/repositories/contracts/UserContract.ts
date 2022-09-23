@@ -1,4 +1,4 @@
+import { User } from '@app/shared';
 import { RepositoryContract } from '@app/server/core';
-import { IUser } from '../../interfaces';
 
-export type UserRepositoryContract = RepositoryContract<IUser>;
+export type UserRepositoryContract = RepositoryContract<User>;

@@ -6,9 +6,10 @@ import { useState } from 'react';
 import Navigation from './components/vertical/navigation';
 import AppBar from './components/vertical/appBar';
 import Footer from './components/shared-components/footer';
-import DatePickerWrapper from '@app/client/@core/styles/libs/react-datepicker';
 import ScrollToTop from './components/scroll-to-top';
 import { ArrowUpward } from '@mui/icons-material';
+import { useSettings } from '../hooks';
+import DatePickerWrapper from '@app/client/@core/styles/libs/react-datepicker';
 
 const VerticalLayoutWrapper = styled('div')({
     height: '100%',
@@ -35,7 +36,8 @@ const ContentWrapper = styled('main')(({ theme }) => ({
 }));
 
 const VerticalLayout = (props: LayoutProps) => {
-    const { settings, children, scrollToTop } = props;
+    const { children, scrollToTop } = props;
+    const { settings } = useSettings()
 
     const { contentWidth } = settings;
     const navWidth = themeConfig.navigationSize;

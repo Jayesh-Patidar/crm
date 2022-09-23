@@ -1,4 +1,3 @@
-import { Settings } from '@app/client/@core/context';
 import { NavLink } from '@app/client/@core/layouts/types';
 import themeConfig from '@app/client/configs/themeConfig';
 import {
@@ -20,7 +19,6 @@ import UserIcon from '@app/client/@core/layouts/components/UserIcon';
 
 interface Props {
     item: NavLink;
-    settings: Settings;
     navVisible?: boolean;
     toggleNavVisibility: () => void;
 }

@@ -1,6 +1,6 @@
+import { Settings } from '../ducks';
 import { deepmerge } from '@mui/utils';
 import { ThemeOptions } from '@mui/material';
-import { Settings } from '../settings';
 
 // ** Theme Override Imports
 import palette from './palette';
