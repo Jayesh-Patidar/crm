@@ -2,6 +2,7 @@ import { BRAND_MODELS_SERVICE } from '../constants';
 import { BrandModelServiceContract } from '../services';
 import { ApiController, Request, Response } from '@app/server/core';
 import { Controller, Get, Inject, Req, Res } from '@nestjs/common';
+import { IBrandModelForDropdown } from '../interfaces';
 
 @Controller('brand-model')
 export class BrandModelController extends ApiController {
@@ -17,12 +18,9 @@ export class BrandModelController extends ApiController {
         @Req() req: Request,
         @Res() res: Response,
     ): Promise<Response> {
-        const inputs = req.all();
+        const inputs = req.all<IBrandModelForDropdown>();
 
-        const brands = await this.brandModelService.brandModelsForDropdown({
-            brandId: +inputs.brandId,
-            searchValue: inputs.searchValue,
-        });
+        const brands = await this.brandModelService.brandModelsForDropdown(inputs);
 
         return res.success(brands);
     }

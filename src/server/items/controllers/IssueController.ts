@@ -2,6 +2,7 @@ import { ISSUES_SERVICE } from '../constants';
 import { IssueServiceContract } from '../services';
 import { ApiController, Request, Response } from '@app/server/core';
 import { Controller, Inject, Get, Req, Res } from '@nestjs/common';
+import { IIssuesForDropdown } from '../interfaces';
 
 @Controller('issue')
 export class IssueController extends ApiController {
@@ -17,11 +18,9 @@ export class IssueController extends ApiController {
         @Req() req: Request,
         @Res() res: Response,
     ): Promise<Response> {
-        const inputs = req.all();
+        const inputs = req.all<IIssuesForDropdown>();
 
-        const brands = await this.issueService.issuesForDropdown({
-            searchValue: inputs.searchValue,
-        });
+        const brands = await this.issueService.issuesForDropdown(inputs);
 
         return res.success(brands);
     }

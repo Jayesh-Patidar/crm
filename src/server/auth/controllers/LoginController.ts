@@ -16,11 +16,9 @@ export class LoginController extends ApiController {
 
     @Post()
     async login(@Req() req: Request, @Res() res: Response): Promise<Response> {
-        const inputs = req.all();
+        const inputs = req.all<ILoginRequest>();
 
-        const loggedInUser = await this.loginService.login(
-            inputs as ILoginRequest,
-        );
+        const loggedInUser = await this.loginService.login(inputs);
 
         return res.success(loggedInUser);
     }

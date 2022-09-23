@@ -25,7 +25,12 @@ export class RepairingService implements RepairingServiceContract {
     async getRepairingRecords(
         inputs: IGetRepairingRecords,
     ): Promise<RepairingRecord[]> {
-        return this.repairingRepository.getRepairingRecords(inputs);
+        const { limit = 20, offset = 1 } = inputs;
+        return this.repairingRepository.getRepairingRecords({
+            ...inputs,
+            limit,
+            offset,
+        });
     }
 
     async saveRepairingRecord(inputs: ICreateRepairingRecord): Promise<void> {

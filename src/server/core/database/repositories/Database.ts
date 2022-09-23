@@ -16,7 +16,7 @@ export class DatabaseRepository<T extends Record<string, any>>
         return this.model
             .query(args)
             .modify((query: QueryBuilder<any, any>) =>
-                withSoftDeleted ? query : query.whereNull('deleted_at'),
+                withSoftDeleted ? query : query.whereNull(`${query['_modelClass'].tableName}.deleted_at`),
             );
     }
 

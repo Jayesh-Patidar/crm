@@ -1,6 +1,6 @@
 import { Repairing } from '../../models';
 import { Injectable } from '@nestjs/common';
-import { Repairing as IRepairing } from '@app/shared';
+import { Repairing as IRepairing, RepairingRecord } from '@app/shared';
 import { RepairingRepositoryContract } from '../contracts';
 import { DatabaseRepository, InjectModel } from '@app/server/core';
 import { IGetRepairingRecords } from '../../interfaces';
@@ -13,9 +13,11 @@ export class RepairingRepositoryDatabase
     @InjectModel(Repairing)
     model: Repairing;
 
-    getRepairingRecords(inputs: IGetRepairingRecords) {
+    async getRepairingRecords(
+        inputs: IGetRepairingRecords,
+    ): Promise<RepairingRecord[]> {
         const { limit } = inputs;
-        return Repairing.query()
+        return this.query()
             .withGraphJoined(
                 `[
                 customer(defaultSelects),

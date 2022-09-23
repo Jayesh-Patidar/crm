@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { Request } from '../interfaces';
+import { Request, Return } from '../interfaces';
 
 @Injectable()
 export class RequestGuard implements CanActivate {
@@ -18,7 +18,7 @@ export class RequestGuard implements CanActivate {
      * @param request
      */
     bindRequestHelpers(request: Request): Request {
-        const all = function (): Record<string, any> {
+        const all = function <T>(): Return<T> {
             const inputs = {
                 ...request.query,
                 ...request.body,
