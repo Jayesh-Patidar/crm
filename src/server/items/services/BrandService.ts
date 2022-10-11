@@ -2,8 +2,8 @@ import { Brand } from '@app/shared';
 import { Inject, Injectable } from '@nestjs/common';
 import { BRANDS_REPOSITORY } from '../constants';
 import { IBrandsForDropdown } from '../interfaces';
-import { BrandRepositoryContract } from '../repositories';
-import { BrandServiceContract } from './contracts';
+import type { BrandRepositoryContract } from '../repositories';
+import type { BrandServiceContract } from './contracts';
 
 @Injectable()
 export class BrandService implements BrandServiceContract {

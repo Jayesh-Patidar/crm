@@ -9,7 +9,7 @@ import { rootReducer } from './rootReducer';
 const persistConfig = {
     key: 'redux',
     storage,
-    whitelist: ['auth'],
+    whitelist: [authSlice.name],
 };
 
 export const persistedReducer = persistReducer(persistConfig, rootReducer);

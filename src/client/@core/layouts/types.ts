@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { SvgIconTypeMap } from '@mui/material';
-import { Settings } from '../ducks';
 
 export type ContentWidth = 'full' | 'boxed';
 

@@ -1,4 +1,3 @@
-import next from 'next';
 import config from '@config/index';
 import { AuthModule } from './auth';
 import { UserModule } from './user';

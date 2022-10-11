@@ -1,14 +1,12 @@
-import { Box, Theme, Typography, useMediaQuery } from '@mui/material';
-import Link from 'next/link';
+import { Box, Link, Typography } from '@mui/material';
 
 const FooterContent = () => {
-    const hidden = useMediaQuery((theme: Theme) =>
-        theme.breakpoints.down('md'),
-    );
-
     return (
         <Box
             sx={{
+                position:'fixed',
+                right: 25,
+                bottom: 20,
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
@@ -21,7 +19,7 @@ const FooterContent = () => {
                     ❤️
                 </Box>
                 {` by `}
-                <Link target="_blank" href="https://github.com/Jayesh-Patidar">
+                <Link target='_blank' href='https://github.com/Jayesh-Patidar' sx={{ color: 'primary' }}>
                     Jayesh Patidar
                 </Link>
             </Typography>

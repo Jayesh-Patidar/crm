@@ -1,21 +1,29 @@
-import DatePickerWrapper from '@app/client/@core/styles/libs/react-datepicker';
 import {
     Autocomplete,
-    Button,
     Card,
     CardContent,
     CardHeader,
     CircularProgress,
     Divider,
     Grid,
+    InputAdornment,
     TextField,
     Typography,
 } from '@mui/material';
-import { first, get, isEmpty, map } from 'lodash';
-import { useAxios } from '@app/client/utils';
-import { Fragment, useEffect, useState, MouseEvent } from 'react';
-import { Brand, BrandModel, Customer, Issue } from '@app/shared';
 import { useRouter } from 'next/router';
+import { LoadingButton } from '@mui/lab';
+import { useAxios } from '@app/client/utils';
+import {
+    MobileDateTimePicker,
+    LocalizationProvider,
+} from '@mui/x-date-pickers';
+import {AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { first, get, isEmpty, map } from 'lodash';
+import { Fragment, useEffect, useState, MouseEvent } from 'react';
+import { Brand, BrandModel, Customer, DATE_TIME_FORMAT, Issue } from '@app/shared';
+import DatePickerWrapper from '@app/client/@core/styles/libs/react-datepicker';
+import { CurrencyRupeeOutlined } from '@mui/icons-material';
+import moment, { Moment } from 'moment';
 
 type State<K extends string, T> = {
     [key in K]: T[];
@@ -31,7 +39,7 @@ type Field =
     | 'issue'
     | 'brandModel';
 
-interface FormData {
+interface Body {
     customerId?: number;
     customerPhone?: string;
     customerFirstName?: string;
@@ -39,10 +47,12 @@ interface FormData {
     brandId: number;
     brandModelId: number;
     issueIds: number[];
+    expectedRepairingCost: number;
+    expectedReturnDate: string;
 }
 
 type Errors = {
-    [key in keyof FormData]?: string[];
+    [key in keyof Body]?: string[];
 };
 
 const AddItem = () => {
@@ -68,6 +78,11 @@ const AddItem = () => {
         brandModels: [],
         isLoading: false,
     });
+    const [expectedReturnDate, setExpectedReturnDate] = useState<Moment>(moment().add(1, 'day'));
+    const [expectedRepairingCost, setExpectedRepairingCost] = useState<
+        number | undefined
+    >(undefined);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errors, setErrors] = useState<Errors>({
         customerId: [],
         customerPhone: [],
@@ -75,8 +90,8 @@ const AddItem = () => {
         customerLastName: [],
         brandId: [],
         brandModelId: [],
-        issueIds: []
-    })
+        issueIds: [],
+    });
 
     const fetchCustomers = async (searchValue?: string): Promise<void> => {
         setCustomerState({ ...customerState, isLoading: true });
@@ -229,7 +244,7 @@ const AddItem = () => {
             'firstName',
         ).split(' ');
 
-        const formData: FormData = {
+        const body: Body = {
             customerId: get(customerState.selectedValue, 'id') || undefined,
             customerPhone: get(customerState.selectedValue, 'phone'),
             customerFirstName,
@@ -237,15 +252,22 @@ const AddItem = () => {
             brandId: get(brandState.selectedValue, 'id'),
             brandModelId: get(brandModelState.selectedValue, 'id'),
             issueIds: map(issueState.selectedValue as Issue[], 'id'),
+            expectedRepairingCost,
+            expectedReturnDate: expectedReturnDate.toISOString(),
         };
+
+        setIsLoading(true);
+
         const { error } = await axios({
             url: 'repairing',
             method: 'post',
-            // data: formData,
+            data: body,
         });
 
+        setIsLoading(false);
+
         if (error) {
-            setErrors(error)
+            setErrors(error);
             return;
         }
 
@@ -288,8 +310,14 @@ const AddItem = () => {
                                         <TextField
                                             {...params}
                                             label="Phone"
-                                            error={!isEmpty(errors.customerId) || !isEmpty(errors.customerPhone)}
-                                            helperText={first(errors.customerId) || !isEmpty(errors.customerPhone)}
+                                            error={
+                                                !isEmpty(errors.customerId) ||
+                                                !isEmpty(errors.customerPhone)
+                                            }
+                                            helperText={
+                                                first(errors.customerId) ||
+                                                !isEmpty(errors.customerPhone)
+                                            }
                                             InputProps={{
                                                 ...params.InputProps,
                                                 type: 'number',
@@ -326,7 +354,7 @@ const AddItem = () => {
                                             reason,
                                         )
                                     }
-                                    onChange={(event, value, reason) =>
+                                    onChange={(event, value) =>
                                         handleValueSelected(
                                             'customerPhone',
                                             value,
@@ -340,8 +368,14 @@ const AddItem = () => {
                                     type="text"
                                     variant="outlined"
                                     fullWidth={true}
-                                    error={!isEmpty(errors.customerFirstName) || !isEmpty(errors.customerLastName)}
-                                    helperText={first(errors.customerFirstName) || !isEmpty(errors.customerLastName)}
+                                    error={
+                                        !isEmpty(errors.customerFirstName) ||
+                                        !isEmpty(errors.customerLastName)
+                                    }
+                                    helperText={
+                                        first(errors.customerFirstName) ||
+                                        !isEmpty(errors.customerLastName)
+                                    }
                                     disabled={
                                         !get(
                                             customerState.selectedValue,
@@ -413,8 +447,12 @@ const AddItem = () => {
                                         <TextField
                                             {...params}
                                             label="Model"
-                                            error={!isEmpty(errors.brandModelId)}
-                                            helperText={first(errors.brandModelId)}
+                                            error={
+                                                !isEmpty(errors.brandModelId)
+                                            }
+                                            helperText={first(
+                                                errors.brandModelId,
+                                            )}
                                             InputProps={{
                                                 ...params.InputProps,
                                                 type: 'text',
@@ -504,15 +542,65 @@ const AddItem = () => {
                                     }
                                 />
                             </Grid>
+                            <Grid item xs={12}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{ fontWeight: 600 }}
+                                >
+                                    4. Other Details
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <LocalizationProvider dateAdapter={AdapterMoment}>
+                                <MobileDateTimePicker
+                                    disablePast={true}
+                                    value={expectedReturnDate}
+                                    onChange={(value) => setExpectedReturnDate(value)}
+                                    label='Expected Return Date'
+                                    inputFormat={DATE_TIME_FORMAT}
+                                    mask="____/__/__ __:__ _M"
+                                    renderInput={(params) => <TextField fullWidth={true} {...params} />}
+                                />
+                                </LocalizationProvider>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Expected Repairing Cost"
+                                    type="number"
+                                    variant="outlined"
+                                    fullWidth={true}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <CurrencyRupeeOutlined fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    error={
+                                        !isEmpty(errors.expectedRepairingCost)
+                                    }
+                                    helperText={first(
+                                        errors.expectedRepairingCost,
+                                    )}
+                                    value={expectedRepairingCost}
+                                    onChange={(event) =>
+                                        setExpectedRepairingCost(
+                                            event.target
+                                                .value as unknown as number,
+                                        )
+                                    }
+                                />
+                            </Grid>
                             <Grid
                                 container
                                 item
                                 xs={12}
                                 justifyContent="flex-end"
                             >
-                                <Button
+                                <LoadingButton
                                     size="large"
                                     variant="contained"
+                                    loading={isLoading}
                                     disabled={
                                         !customerState.selectedValue ||
                                         !brandState.selectedValue ||
@@ -522,7 +610,7 @@ const AddItem = () => {
                                     onClick={handleAddItem}
                                 >
                                     Add Item
-                                </Button>
+                                </LoadingButton>
                             </Grid>
                         </Grid>
                     </CardContent>

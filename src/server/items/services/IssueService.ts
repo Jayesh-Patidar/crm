@@ -1,9 +1,9 @@
 import { Issue } from '@app/shared';
 import { ISSUES_REPOSITORY } from '../constants';
-import { IssueServiceContract } from './contracts';
+import type { IssueServiceContract } from './contracts';
 import { IIssuesForDropdown } from '../interfaces';
 import { Inject, Injectable } from '@nestjs/common';
-import { IssueRepositoryContract } from '../repositories';
+import type { IssueRepositoryContract } from '../repositories';
 
 @Injectable()
 export class IssueService implements IssueServiceContract {

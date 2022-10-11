@@ -1,5 +1,5 @@
-import { User } from '../interfaces';
+import { Customer, User } from '../interfaces';
 
-export const getFullName = (user: User) => {
+export const getFullName = (user: User | Customer) => {
     return (user && `${user.firstName} ${user.lastName}`) || '--';
 };

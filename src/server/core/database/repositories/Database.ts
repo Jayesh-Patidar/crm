@@ -1,5 +1,6 @@
 import type { RepositoryContract } from './Contract';
-import type { QueryBuilder, TransactionOrKnex } from 'objection';
+import type { TransactionOrKnex } from 'objection';
+import { QueryBuilder } from '../QueryBuilder';
 
 export class DatabaseRepository<T extends Record<string, any>>
     implements RepositoryContract<T>
@@ -16,7 +17,11 @@ export class DatabaseRepository<T extends Record<string, any>>
         return this.model
             .query(args)
             .modify((query: QueryBuilder<any, any>) =>
-                withSoftDeleted ? query : query.whereNull(`${query['_modelClass'].tableName}.deleted_at`),
+                withSoftDeleted
+                    ? query
+                    : query.whereNull(
+                          `${query['_modelClass'].tableName}.deleted_at`,
+                      ),
             );
     }
 

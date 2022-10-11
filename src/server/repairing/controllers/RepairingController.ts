@@ -1,9 +1,13 @@
 import { REPAIRING_SERVICE } from '../constants';
 import { ApiController } from '@app/server/core';
-import { Request, Response } from '@app/server/core';
-import { RepairingServiceContract } from '../services';
-import { ICreateRepairingRecord, IGetRepairingRecords } from '../interfaces';
-import { Controller, Get, Post, Inject, Req, Res } from '@nestjs/common';
+import type { Request, Response } from '@app/server/core';
+import type { RepairingServiceContract } from '../services';
+import {
+    ICreateRepairingRecord,
+    IGetRepairingRecords,
+    IUpdateRepairingRecord,
+} from '../interfaces';
+import { Controller, Get, Post, Patch, Inject, Req, Res } from '@nestjs/common';
 
 @Controller('repairing')
 export class RepairingController extends ApiController {
@@ -34,6 +38,18 @@ export class RepairingController extends ApiController {
         const inputs = req.all<ICreateRepairingRecord>();
 
         await this.repairingService.saveRepairingRecord(inputs);
+
+        return res.noContent();
+    }
+
+    @Patch(':repairingId')
+    async updateRepairingRecord(
+        @Req() req: Request,
+        @Res() res: Response,
+    ): Promise<Response> {
+        const inputs = req.all<IUpdateRepairingRecord>();
+
+        await this.repairingService.updateRepairingRecord(inputs);
 
         return res.noContent();
     }

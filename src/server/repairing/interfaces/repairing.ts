@@ -6,9 +6,18 @@ export interface ICreateRepairingRecord {
     brandId: number;
     brandModelId: number;
     issueIds: number[];
+    expectedReturnDate: Date;
+    expectedRepairingCost: number;
 }
 
 export interface IGetRepairingRecords {
     limit: number;
-    offset: number;
+    page: number;
+    searchValue: string;
+}
+
+export interface IUpdateRepairingRecord {
+    repairingId: number;
+    status: number;
+    actualRepairingCost: number;
 }

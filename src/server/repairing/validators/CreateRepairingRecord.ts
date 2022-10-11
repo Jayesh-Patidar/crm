@@ -3,11 +3,12 @@ import {
     IsPhoneNumber,
     IsString,
     IsOptional,
-    IsBoolean,
     IsNotEmpty,
     IsNumber,
     ValidateIf,
     IsArray,
+    IsDateString,
+    IsDecimal,
 } from '@app/server/core';
 
 export class CreateRepairingRecordValidator {
@@ -49,4 +50,14 @@ export class CreateRepairingRecordValidator {
     @IsNotEmpty()
     @IsArray()
     issueIds: number[];
+
+    @IsDefined()
+    @IsNotEmpty()
+    @IsDateString()
+    expectedReturnDate: Date;
+
+    @IsDefined()
+    @IsNotEmpty()
+    @IsDecimal()
+    expectedRepairingCost: number;
 }

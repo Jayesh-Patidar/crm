@@ -3,11 +3,8 @@ import {
     IsPhoneNumber,
     IsString,
     IsOptional,
-    IsBoolean,
     IsNotEmpty,
-    IsNumber,
     ValidateIf,
-    IsArray,
 } from '@app/server/core';
 
 export class CreateCustomerRecordValidator {

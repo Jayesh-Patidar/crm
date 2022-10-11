@@ -20,11 +20,10 @@ import { User } from '@app/shared';
 import { useRouter } from 'next/router';
 import { LoadingButton } from '@mui/lab';
 import { useAxios } from '@app/client/utils';
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import { AppState } from '@app/client/ducks/store';
 import themeConfig from '@app/client/configs/themeConfig';
 import BlankLayout from '@app/client/layouts/BlankLayout';
-import { selectIsLoading } from '@app/client/@core/ducks';
 import { setAuthenticatedUser } from '@app/client/ducks/auth';
 import { ReactNode, useState, ChangeEvent, MouseEvent } from 'react';
 import {
@@ -83,8 +82,7 @@ const LoginPage = ({ login }: Props) => {
         showPassword: false,
         rememberMe: false,
     });
-    const isLoading = useSelector(selectIsLoading);
-
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [errors, setErrors] = useState<Errors>({
         phone: [],
         password: [],
@@ -114,7 +112,7 @@ const LoginPage = ({ login }: Props) => {
         event.preventDefault();
     };
 
-    const handleLogin = async (event: MouseEvent<HTMLButtonElement>) => {
+    const handleLogin = async () => {
         setErrors({
             phone: [],
             password: [],
@@ -126,11 +124,15 @@ const LoginPage = ({ login }: Props) => {
             rememberMe: state.rememberMe,
         };
 
+        setIsLoading(true)
+
         const { data, error } = await axios<User>({
             url: 'login',
             method: 'post',
             data: loginData,
         });
+
+        setIsLoading(false)
 
         if (error) {
             return setErrors({ phone: error.phone, password: error.password });

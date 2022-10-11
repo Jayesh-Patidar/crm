@@ -1,6 +1,7 @@
 import { ISSUES_SERVICE } from '../constants';
-import { IssueServiceContract } from '../services';
-import { ApiController, Request, Response } from '@app/server/core';
+import type { IssueServiceContract } from '../services';
+import type { Request, Response } from '@app/server/core';
+import { ApiController } from '@app/server/core';
 import { Controller, Inject, Get, Req, Res } from '@nestjs/common';
 import { IIssuesForDropdown } from '../interfaces';
 

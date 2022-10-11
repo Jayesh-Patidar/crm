@@ -1,14 +1,19 @@
-import { Brand } from './brand';
-import { BrandModel } from './brandModel';
-import { Customer } from './customer';
 import { Issue } from './issue';
+import { Brand } from './brand';
+import { Customer } from './customer';
+import { BrandModel } from './brandModel';
 
 export interface Repairing {
     id: number;
+    generatedId: string;
     customerId: number;
     brandId: number;
     brandModelId: number;
     status: number;
+    expectedRepairingCost: number;
+    actualRepairingCost: number | null;
+    expectedReturnDate: string;
+    actualReturnDate: string | null;
     createdAt?: string;
     updatedAt?: string;
     deletedAt?: null;

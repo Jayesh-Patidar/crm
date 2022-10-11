@@ -1,7 +1,7 @@
 import { Model } from '@app/server/core';
 
 export class User extends Model {
-    static tableName: string = 'users';
+    static tableName = 'users';
 
     protected static hidden = ['password'];
 }

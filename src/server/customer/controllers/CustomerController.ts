@@ -1,7 +1,7 @@
-import { Request, Response } from '@app/server/core';
+import type { Request, Response } from '@app/server/core';
 import { ApiController } from '@app/server/core';
 import { CUSTOMER_SERVICE } from '../constants';
-import { CustomerServiceContract } from '../services';
+import type { CustomerServiceContract } from '../services';
 import { Controller, Get, Inject, Req, Res } from '@nestjs/common';
 import { ICustomerForDropdown } from '../interfaces';
 

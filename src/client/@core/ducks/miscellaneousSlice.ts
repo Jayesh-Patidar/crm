@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 export type Miscellaneous = {
     snackbar: Snackbar;
-    isLoading: boolean;
+    searchValue: string;
 };
 
 export type Snackbar = {
@@ -15,8 +15,8 @@ export type SnackbarAction = {
     payload: string | null;
 };
 
-type IsLoadingAction = {
-    payload: boolean;
+export type SearchValueAction = {
+    payload: string | null;
 };
 
 const initialState: Miscellaneous = {
@@ -24,7 +24,7 @@ const initialState: Miscellaneous = {
         isVisible: false,
         message: '',
     },
-    isLoading: false,
+    searchValue: '',
 };
 
 export const miscellaneousSlice = createSlice({
@@ -35,19 +35,19 @@ export const miscellaneousSlice = createSlice({
             state.snackbar.isVisible = !!action.payload;
             state.snackbar.message = action.payload;
         },
-        setIsLoading(state: Miscellaneous, action: IsLoadingAction) {
-            state.isLoading = action.payload;
+        setSearchValue(state: Miscellaneous, action: SearchValueAction) {
+            state.searchValue = action.payload;
         },
     },
 });
 
-export const { setSnackbar, setIsLoading } = miscellaneousSlice.actions;
+export const { setSnackbar, setSearchValue } = miscellaneousSlice.actions;
 
 export const selectMiscellaneous = (state: AppState) => state.miscellaneous;
 
 export const selectSnackbar = (state: AppState) => state.miscellaneous.snackbar;
 
-export const selectIsLoading = (state: AppState) =>
-    state.miscellaneous.isLoading;
+export const selectSearchValue = (state: AppState) =>
+    state.miscellaneous.searchValue;
 
 export default miscellaneousSlice.reducer;

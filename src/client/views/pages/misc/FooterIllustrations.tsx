@@ -5,7 +5,7 @@ interface FooterIllustrationsProp {
     image?: ReactNode;
 }
 
-const MaskImg = styled('img')(({ theme }) => ({
+const MaskImg = styled('img')(() => ({
     bottom: 0,
     zIndex: -1,
     width: '100%',

@@ -1,18 +1,18 @@
 import { Model } from '@app/server/core';
 import { Customer } from '@app/server/customer';
+import { RepairingIssue } from './RepairingIssue';
 import { Brand, BrandModel, Issue } from '@app/server/items';
 import { RelationMappings, RelationMappingsThunk } from 'objection';
-import { RepairingIssue } from './RepairingIssue';
 
 export class Repairing extends Model {
-    static tableName: string = 'repairing';
+    static tableName = 'repairing';
 
     static relationMappings: RelationMappings | RelationMappingsThunk = {
         customer: {
             relation: Model.BelongsToOneRelation,
             modelClass: Customer,
             join: {
-                from: 'repairing.customer_id',
+                from: 'repairing.customerId',
                 to: 'customers.id',
             },
         },
@@ -21,7 +21,7 @@ export class Repairing extends Model {
             relation: Model.BelongsToOneRelation,
             modelClass: Brand,
             join: {
-                from: 'repairing.brand_id',
+                from: 'repairing.brandId',
                 to: 'brands.id',
             },
         },
@@ -30,7 +30,7 @@ export class Repairing extends Model {
             relation: Model.BelongsToOneRelation,
             modelClass: BrandModel,
             join: {
-                from: 'repairing.brand_model_id',
+                from: 'repairing.brandModelId',
                 to: 'brand_models.id',
             },
         },
@@ -41,8 +41,8 @@ export class Repairing extends Model {
             join: {
                 from: 'repairing.id',
                 through: {
-                    from: 'repairing_issues.repairing_id',
-                    to: 'repairing_issues.issue_id',
+                    from: 'repairing_issues.repairingId',
+                    to: 'repairing_issues.issueId',
                 },
                 to: 'issues.id',
             },
@@ -53,7 +53,7 @@ export class Repairing extends Model {
             modelClass: RepairingIssue,
             join: {
                 from: 'repairing.id',
-                to: 'repairing_issues.repairing_id',
+                to: 'repairing_issues.repairingId',
             },
         },
     };

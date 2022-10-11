@@ -6,7 +6,13 @@ export async function up(knex: Knex): Promise<void> {
         table.bigInteger('customer_id').unsigned().notNullable();
         table.bigInteger('brand_id').unsigned().notNullable();
         table.bigInteger('brand_model_id').unsigned().notNullable();
-        table.specificType('status', 'TINYINT(2)').comment('');
+        table
+            .specificType('status', 'TINYINT(2)')
+            .comment('1-Pending,2-Repaired,3-Unserviceable,4-Cancelled');
+        table.decimal('expected_repairing_cost', 12, 2);
+        table.decimal('actual_repairing_cost', 12, 2).nullable();
+        table.timestamp('expected_return_date');
+        table.timestamp('actual_return_date').nullable;
         table
             .timestamp('created_at')
             .notNullable()

@@ -1,9 +1,9 @@
 import { Customer } from '@app/shared';
 import { Inject, Injectable } from '@nestjs/common';
 import { CUSTOMER_REPOSITORY } from '../constants';
-import { CustomerServiceContract } from './contracts';
+import type { CustomerServiceContract } from './contracts';
 import { ICreateCustomer, ICustomerForDropdown } from '../interfaces';
-import { CustomerRepositoryContract } from '../repositories';
+import type { CustomerRepositoryContract } from '../repositories';
 import { Validator } from '@app/server/core';
 import { CreateCustomerRecordValidator } from '../validators';
 

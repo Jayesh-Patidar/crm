@@ -1,9 +1,9 @@
-import { Request, Response } from '@app/server/core';
+import type { Request, Response } from '@app/server/core';
 import { ApiController } from '@app/server/core';
 import { Controller, Get, Inject, Req, Res } from '@nestjs/common';
 import { BRANDS_SERVICE } from '../constants';
 import { IBrandsForDropdown } from '../interfaces';
-import { BrandServiceContract } from '../services';
+import type { BrandServiceContract } from '../services';
 
 @Controller('brand')
 export class BrandController extends ApiController {

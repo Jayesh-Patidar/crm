@@ -1,8 +1,5 @@
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
 import { HttpStatus } from '@nestjs/common';
 import { useSnackbar } from '@app/client/@core/hooks';
-import { setIsLoading } from '@app/client/@core/ducks';
 import axiosInstance, {
     AxiosRequestConfig,
     AxiosError,
@@ -28,25 +25,21 @@ interface APIResponse<T> {
 
 export const useAxios = (): IUseAxiosReturn => {
     const { toggleSnackbar } = useSnackbar();
-    const dispatch = useDispatch();
 
     const axios = async <T>(
         options: AxiosRequestConfig,
     ): Promise<IResponse<T>> => {
-        let response: IResponse<T> = {};
+        const response: IResponse<T> = {};
 
         try {
-            dispatch(setIsLoading(true));
             const data: AxiosResponse<APIResponse<T>> = await axiosInstance({
                 ...options,
                 baseURL: process.env.NEXT_PUBLIC_API_URL,
-                url: `api/${options.url.replace(/\//, '')}`,
+                url: `api/${options.url.replace(/^\//, '')}`,
             });
 
-            dispatch(setIsLoading(false));
             response.data = data.data.data;
         } catch (err) {
-            dispatch(setIsLoading(false));
             if (err.code === 'ERR_NETWORK') {
                 toggleSnackbar('Server not available');
                 return response;

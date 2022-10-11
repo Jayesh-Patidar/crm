@@ -1,8 +1,8 @@
 import { Request as BaseRequest } from 'express';
 
 export type Return<T extends Record<string, any>> = {
-    [k in keyof T]: any
-}
+    [k in keyof T]: any;
+};
 
 export interface Request extends BaseRequest {
     /**

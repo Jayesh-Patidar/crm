@@ -1,5 +1,6 @@
 import { omit, pick } from 'lodash';
 import { Model as BaseModel } from 'objection';
+import { QueryBuilder } from './QueryBuilder';
 
 export class Model extends BaseModel {
     /**
@@ -15,6 +16,12 @@ export class Model extends BaseModel {
      * @var string[]
      */
     protected static visible: string[] = [];
+
+    /**
+     * Customer query builder
+     */
+    QueryBuilderType!: QueryBuilder<this, this[]>;
+    static QueryBuilder = QueryBuilder;
 
     constructor() {
         super();

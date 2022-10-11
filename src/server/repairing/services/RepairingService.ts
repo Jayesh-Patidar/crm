@@ -1,16 +1,27 @@
-import { RepairingRecord } from '@app/shared';
-import { Inject, Injectable } from '@nestjs/common';
-import { REPAIRING_REPOSITORY, REPAIRING_STATUS } from '../constants';
-import { RepairingServiceContract } from './contracts';
-import { RepairingRepositoryContract } from '../repositories';
-import { ICreateRepairingRecord, IGetRepairingRecords } from '../interfaces';
-import { Validator } from '@app/server/core';
-import { CreateRepairingRecordValidator } from '../validators';
-import {
-    CustomerServiceContract,
-    CUSTOMER_SERVICE,
-} from '@app/server/customer';
+import { CUSTOMER_SERVICE } from '@app/server/customer';
+import type { CustomerServiceContract } from '@app/server/customer';
 import { uniq } from 'lodash';
+import { Validator } from '@app/server/core';
+import { Inject, Injectable } from '@nestjs/common';
+import type { RepairingServiceContract } from './contracts';
+import {
+    DATABASE_DATE_TIME_FORMAT,
+    getFormattedDateAndTime,
+    Pagination,
+    RepairingRecord,
+    REPAIRING_STATUS,
+} from '@app/shared';
+import type { RepairingRepositoryContract } from '../repositories';
+import {
+    CreateRepairingRecordValidator,
+    UpdateRepairingRecord,
+} from '../validators';
+import { REPAIRING_REPOSITORY } from '../constants';
+import {
+    ICreateRepairingRecord,
+    IGetRepairingRecords,
+    IUpdateRepairingRecord,
+} from '../interfaces';
 
 @Injectable()
 export class RepairingService implements RepairingServiceContract {
@@ -24,12 +35,12 @@ export class RepairingService implements RepairingServiceContract {
 
     async getRepairingRecords(
         inputs: IGetRepairingRecords,
-    ): Promise<RepairingRecord[]> {
-        const { limit = 20, offset = 1 } = inputs;
+    ): Promise<Pagination<RepairingRecord>> {
+        const { limit = 20, page = 1 } = inputs;
         return this.repairingRepository.getRepairingRecords({
             ...inputs,
-            limit,
-            offset,
+            limit: +limit,
+            page: +page,
         });
     }
 
@@ -44,6 +55,8 @@ export class RepairingService implements RepairingServiceContract {
             brandId,
             brandModelId,
             issueIds,
+            expectedReturnDate,
+            expectedRepairingCost,
         } = inputs;
 
         if (!customerId) {
@@ -61,9 +74,35 @@ export class RepairingService implements RepairingServiceContract {
             brandId: brandId,
             brandModelId: brandModelId,
             status: REPAIRING_STATUS.PENDING,
+            expectedRepairingCost,
+            expectedReturnDate: getFormattedDateAndTime(
+                expectedReturnDate,
+                DATABASE_DATE_TIME_FORMAT,
+            ),
             repairingIssues: uniq(issueIds).map((issueId) => ({
                 issueId: issueId,
             })),
         });
+    }
+
+    async updateRepairingRecord(inputs: IUpdateRepairingRecord): Promise<void> {
+        await this.validator.validate(inputs, UpdateRepairingRecord);
+
+        const { repairingId, status, actualRepairingCost } = inputs;
+
+        await this.repairingRepository
+            .query()
+            .update({
+                status,
+                actualRepairingCost,
+                actualReturnDate:
+                    (status === REPAIRING_STATUS.REPAIRED &&
+                        getFormattedDateAndTime(
+                            undefined,
+                            DATABASE_DATE_TIME_FORMAT,
+                        )) ||
+                    null,
+            })
+            .where({ id: repairingId, status: REPAIRING_STATUS.PENDING });
     }
 }

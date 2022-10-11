@@ -23,14 +23,14 @@ const input = (theme: Theme) => {
                         borderBottom: `1px solid ${theme.palette.text.disabled}`,
                     },
                     '& input[type=number]': {
-                        '-moz-appearance': 'textfield',
+                        MozAppearance: 'textfield',
                     },
                     '& input[type=number]::-webkit-outer-spin-button': {
-                        '-webkit-appearance': 'none',
+                        WebkitAppearance: 'none',
                         margin: 0,
                     },
                     '& input[type=number]::-webkit-inner-spin-button': {
-                        '-webkit-appearance': 'none',
+                        WebkitAppearance: 'none',
                         margin: 0,
                     },
                 },
@@ -50,14 +50,14 @@ const input = (theme: Theme) => {
                         borderBottom: `1px solid rgba(${theme.palette.customColors.main}, 0.32)`,
                     },
                     '& input[type=number]': {
-                        '-moz-appearance': 'textfield',
+                        MozAppearance: 'textfield',
                     },
                     '& input[type=number]::-webkit-outer-spin-button': {
-                        '-webkit-appearance': 'none',
+                        WebkitAppearance: 'none',
                         margin: 0,
                     },
                     '& input[type=number]::-webkit-inner-spin-button': {
-                        '-webkit-appearance': 'none',
+                        WebkitAppearance: 'none',
                         margin: 0,
                     },
                 },
@@ -80,14 +80,14 @@ const input = (theme: Theme) => {
                         borderColor: theme.palette.text.disabled,
                     },
                     '& input[type=number]': {
-                        '-moz-appearance': 'textfield',
+                        MozAppearance: 'textfield',
                     },
                     '& input[type=number]::-webkit-outer-spin-button': {
-                        '-webkit-appearance': 'none',
+                        WebkitAppearance: 'none',
                         margin: 0,
                     },
                     '& input[type=number]::-webkit-inner-spin-button': {
-                        '-webkit-appearance': 'none',
+                        WebkitAppearance: 'none',
                         margin: 0,
                     },
                 },

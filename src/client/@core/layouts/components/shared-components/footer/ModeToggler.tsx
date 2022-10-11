@@ -1,10 +1,9 @@
-import { useSettings, useSnackbar } from '@app/client/@core/hooks';
+import { useSettings } from '@app/client/@core/hooks';
 import { DarkMode, LightMode } from '@mui/icons-material';
 import { IconButton, PaletteMode } from '@mui/material';
 
 const ModeToggler = () => {
     const { settings, saveSettings } = useSettings();
-    const { toggleSnackbar } = useSnackbar();
 
     const handleModeChange = (mode: PaletteMode) => {
         saveSettings({ mode });
