@@ -1,6 +1,7 @@
-import { Brand } from '@app/shared';
-import { IBrandsForDropdown } from '../../interfaces';
+import { Brand, Pagination } from '@app/shared';
+import { IGetBrands, ICreateBrand } from '../../interfaces';
 
 export interface BrandServiceContract {
-    brandsForDropdown(inputs: IBrandsForDropdown): Promise<Brand[]>;
+    getBrands(inputs: IGetBrands): Promise<Pagination<Brand>>;
+    createBrand(inputs: ICreateBrand): Promise<Brand>;
 }

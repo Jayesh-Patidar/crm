@@ -9,9 +9,15 @@ export class Issue extends Model {
             query.select(
                 'issues.id',
                 'issues.issue',
-                'issues.issue_type',
-                'issues.approximate_time_to_fix',
+                'issues.issueType',
+                'issues.approximateTimeToFix',
             );
+        },
+
+        searchIssues(query, searchValue: string) {
+            if (searchValue) {
+                query.where('issues.issue', 'like', `%${searchValue}%`);
+            }
         },
     };
 }

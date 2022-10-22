@@ -1,6 +1,7 @@
-import { Issue } from '@app/shared';
-import { IIssuesForDropdown } from '../../interfaces';
+import { Issue, Pagination } from '@app/shared';
+import { ICreateIssue, IGetIssues } from '../../interfaces';
 
 export interface IssueServiceContract {
-    issuesForDropdown(inputs: IIssuesForDropdown): Promise<Issue[]>;
+    getIssues(inputs: IGetIssues): Promise<Pagination<Issue>>;
+    createIssue(inputs: ICreateIssue): Promise<Issue>;
 }

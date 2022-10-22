@@ -1,7 +1,7 @@
 import { Customer } from '../../models';
 import { Injectable } from '@nestjs/common';
-import { Customer as ICustomer } from '@app/shared';
-import { ICustomerForDropdown } from '../../interfaces';
+import { Customer as ICustomer, Pagination } from '@app/shared';
+import { IGetCustomers } from '../../interfaces';
 import { CustomerRepositoryContract } from '../contracts';
 import { DatabaseRepository, InjectModel } from '@app/server/core';
 
@@ -13,16 +13,10 @@ export class CustomerRepositoryDatabase
     @InjectModel(Customer)
     model: Customer;
 
-    async getCustomerForDropdown(
-        inputs: ICustomerForDropdown,
-    ): Promise<ICustomer[]> {
-        const { searchValue } = inputs;
+    async getCustomers(inputs: IGetCustomers): Promise<Pagination<ICustomer>> {
+        const { searchValue, page, limit } = inputs;
         return this.query()
-            .modify((query) => {
-                if (searchValue) {
-                    query.where('phone', 'like', `%${searchValue}%`);
-                }
-            })
-            .limit(10);
+            .modify('searchCustomers', searchValue)
+            .paginate<ICustomer>(page, limit);
     }
 }

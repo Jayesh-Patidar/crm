@@ -1,5 +1,5 @@
 const nextConfig = {
-    staticPageGenerationTimeout: 150,
+    staticPageGenerationTimeout: 170,
 };
 
 module.exports = nextConfig;

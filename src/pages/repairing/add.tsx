@@ -1,10 +1,12 @@
 import {
     Autocomplete,
+    Button,
     Card,
     CardContent,
     CardHeader,
     CircularProgress,
     Divider,
+    FilterOptionsState,
     Grid,
     InputAdornment,
     TextField,
@@ -17,38 +19,74 @@ import {
     MobileDateTimePicker,
     LocalizationProvider,
 } from '@mui/x-date-pickers';
-import {AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
-import { first, get, isEmpty, map } from 'lodash';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import {
+    first,
+    get,
+    has,
+    isArray,
+    isEmpty,
+    isUndefined,
+    last,
+    set,
+} from 'lodash';
 import { Fragment, useEffect, useState, MouseEvent } from 'react';
-import { Brand, BrandModel, Customer, DATE_TIME_FORMAT, Issue } from '@app/shared';
+import {
+    Brand,
+    BrandModel,
+    Customer,
+    DATE_TIME_FORMAT,
+    Issue,
+    Pagination,
+} from '@app/shared';
 import DatePickerWrapper from '@app/client/@core/styles/libs/react-datepicker';
-import { CurrencyRupeeOutlined } from '@mui/icons-material';
-import moment, { Moment } from 'moment';
+import {
+    CalendarMonthOutlined,
+    CurrencyRupeeOutlined,
+    QrCodeOutlined,
+} from '@mui/icons-material';
+import moment from 'moment';
 
 type State<K extends string, T> = {
     [key in K]: T[];
 } & {
-    selectedValue?: T | T[];
+    pagination?: Pagination<T>['pagination'];
+    searchValue: string;
     isLoading?: boolean;
 };
 
 type Field =
-    | 'customerPhone'
-    | 'customerName'
+    | 'customer'
     | 'brand'
-    | 'issue'
-    | 'brandModel';
+    | 'issues'
+    | 'brandModel'
+    | 'serialNumber'
+    | 'expectedReturnDate'
+    | 'expectedRepairingCost';
+
+type Key = 'phone' | 'brandName' | 'modelName' | 'issue';
+
+interface InputValue {
+    inputValue?: any;
+}
+
+type MultipleSelectedValues = Array<
+    NonNullable<string | Partial<Issue>> & InputValue
+>;
+
+type SingleSelectedValue = NonNullable<string | Partial<Customer>> &
+    NonNullable<string | Partial<Brand>> &
+    NonNullable<string | Partial<BrandModel>> &
+    InputValue;
 
 interface Body {
-    customerId?: number;
-    customerPhone?: string;
-    customerFirstName?: string;
-    customerLastName?: string | null;
-    brandId: number;
-    brandModelId: number;
-    issueIds: number[];
-    expectedRepairingCost: number;
+    customer: Partial<Customer>;
+    brand: Partial<Brand>;
+    brandModel: Partial<BrandModel>;
+    issues: Partial<Issue>[];
+    serialNumber: string | null;
     expectedReturnDate: string;
+    expectedRepairingCost: number | null;
 }
 
 type Errors = {
@@ -62,88 +100,128 @@ const AddItem = () => {
         State<'customers', Customer>
     >({
         customers: [],
+        searchValue: '',
         isLoading: false,
     });
     const [brandState, setBrandState] = useState<State<'brands', Brand>>({
         brands: [],
+        searchValue: '',
         isLoading: false,
     });
     const [issueState, setIssueState] = useState<State<'issues', Issue>>({
         issues: [],
+        searchValue: '',
         isLoading: false,
     });
     const [brandModelState, setBrandModelState] = useState<
         State<'brandModels', BrandModel>
     >({
         brandModels: [],
+        searchValue: '',
         isLoading: false,
     });
-    const [expectedReturnDate, setExpectedReturnDate] = useState<Moment>(moment().add(1, 'day'));
-    const [expectedRepairingCost, setExpectedRepairingCost] = useState<
-        number | undefined
-    >(undefined);
+    const [apiBody, setApiBody] = useState<Body>({
+        customer: {},
+        brand: {},
+        brandModel: {},
+        issues: [],
+        serialNumber: '',
+        expectedRepairingCost: undefined,
+        expectedReturnDate: moment().add(1, 'day').toISOString(),
+    });
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errors, setErrors] = useState<Errors>({
-        customerId: [],
-        customerPhone: [],
-        customerFirstName: [],
-        customerLastName: [],
-        brandId: [],
-        brandModelId: [],
-        issueIds: [],
+        customer: [],
+        brand: [],
+        brandModel: [],
+        issues: [],
+        serialNumber: [],
+        expectedReturnDate: [],
+        expectedRepairingCost: [],
     });
 
     const fetchCustomers = async (searchValue?: string): Promise<void> => {
-        setCustomerState({ ...customerState, isLoading: true });
+        if (isUndefined(searchValue)) {
+            setCustomerState({ ...customerState, isLoading: true });
+        }
 
         const url = `customer${
             searchValue ? `?searchValue=${searchValue}` : ''
         }`;
-        const { data } = await axios<Customer[]>({
+
+        const { data } = await axios<Pagination<Customer>>({
             url,
             method: 'get',
         });
 
-        setCustomerState({ customers: data || [], isLoading: false });
+        setCustomerState({
+            customers: get(data, 'records', []),
+            pagination: get(data, 'pagination', null),
+            searchValue: searchValue || '',
+            isLoading: false,
+        });
     };
 
     const fetchBrands = async (searchValue?: string): Promise<void> => {
-        setBrandState({ ...brandState, isLoading: true });
+        if (isUndefined(searchValue)) {
+            setBrandState({ ...brandState, isLoading: true });
+        }
 
         const url = `brand${searchValue ? `?searchValue=${searchValue}` : ''}`;
-        const { data } = await axios<Brand[]>({
+
+        const { data } = await axios<Pagination<Brand>>({
             url,
             method: 'get',
         });
 
-        setBrandState({ brands: data || [], isLoading: false });
+        setBrandState({
+            brands: get(data, 'records', []),
+            pagination: get(data, 'pagination', null),
+            searchValue: searchValue || '',
+            isLoading: false,
+        });
     };
 
     const fetchIssues = async (searchValue?: string): Promise<void> => {
-        setIssueState({ ...issueState, isLoading: true });
+        if (isUndefined(searchValue)) {
+            setIssueState({ ...issueState, isLoading: true });
+        }
 
         const url = `issue${searchValue ? `?searchValue=${searchValue}` : ''}`;
-        const { data } = await axios<Issue[]>({
+
+        const { data } = await axios<Pagination<Issue>>({
             url,
             method: 'get',
         });
 
-        setIssueState({ issues: data || [], isLoading: false });
+        setIssueState({
+            issues: get(data, 'records', []),
+            pagination: get(data, 'pagination', null),
+            searchValue: searchValue || '',
+            isLoading: false,
+        });
     };
 
     const fetchBrandModels = async (searchValue?: string): Promise<void> => {
-        setBrandModelState({ ...brandModelState, isLoading: true });
+        if (isUndefined(searchValue)) {
+            setBrandModelState({ ...brandModelState, isLoading: true });
+        }
 
-        const url = `brand-model?brandId=${get(
-            brandState.selectedValue,
-            'id',
-        )}${searchValue ? `&searchValue=${searchValue}` : ''}`;
-        const { data } = await axios<BrandModel[]>({
+        const url = `brand-model?brandId=${get(apiBody.brand, 'id', 0)}${
+            searchValue ? `&searchValue=${searchValue}` : ''
+        }`;
+
+        const { data } = await axios<Pagination<BrandModel>>({
             url,
             method: 'get',
         });
 
-        setBrandModelState({ brandModels: data || [], isLoading: false });
+        setBrandModelState({
+            brandModels: get(data, 'records', []),
+            pagination: get(data, 'pagination', null),
+            searchValue: searchValue || '',
+            isLoading: false,
+        });
     };
 
     useEffect(() => {
@@ -152,137 +230,226 @@ const AddItem = () => {
         })();
     }, []);
 
-    const handleSearch = async (
-        field: Field,
-        searchValue: string,
-        reason?: string,
+    const getOptionLabel = <T,>(option: T, key: Key): string => {
+        if (typeof option === 'string') {
+            return option;
+        }
+
+        return option[key] || '';
+    };
+
+    const filterOptions = <T,>(
+        options: T[],
+        params: FilterOptionsState<T>,
+        key: Key,
+    ): T[] => {
+        const filtered = options;
+
+        const { inputValue } = params;
+
+        const isExisting = !!filtered.length;
+
+        (async () => {
+            if (
+                key === 'phone' &&
+                customerState.searchValue !== inputValue &&
+                (isExisting ||
+                    customerState.searchValue.length > inputValue.length)
+            ) {
+                await fetchCustomers(inputValue);
+            }
+
+            if (
+                key === 'brandName' &&
+                brandState.searchValue !== inputValue &&
+                (isExisting ||
+                    brandState.searchValue.length > inputValue.length)
+            ) {
+                await fetchBrands(inputValue);
+            }
+
+            if (
+                key === 'modelName' &&
+                brandModelState.searchValue !== inputValue &&
+                (isExisting ||
+                    brandModelState.searchValue.length > inputValue.length)
+            ) {
+                await fetchBrandModels(inputValue);
+            }
+
+            if (
+                key === 'issue' &&
+                issueState.searchValue !== inputValue &&
+                (isExisting ||
+                    issueState.searchValue.length > inputValue.length)
+            ) {
+                await fetchIssues(inputValue);
+            }
+        })();
+
+        if (inputValue !== '' && !isExisting) {
+            filtered.push({
+                [key]: `Add "${inputValue}"`,
+                inputValue,
+            } as T);
+        }
+
+        return filtered;
+    };
+
+    const handleChange = async (key: Field, value: SingleSelectedValue) => {
+        let data: any = value;
+
+        if (key === 'customer') {
+            if (typeof value === 'string') {
+                const isPhoneNumber = /[0-9]/g.test(value);
+
+                data = isPhoneNumber
+                    ? { phone: '' }
+                    : { firstName: '', lastName: '' };
+            } else if (value && !isUndefined(value.inputValue)) {
+                const isPhoneNumber = /[0-9]/g.test(value.inputValue);
+
+                const [firstName, lastName] = !isPhoneNumber
+                    ? /\s\w/.test(value.inputValue)
+                        ? value.inputValue.split(/(?<=^\S+)\s/)
+                        : [value.inputValue]
+                    : [];
+
+                data = isPhoneNumber
+                    ? {
+                          phone: value.inputValue,
+                      }
+                    : {
+                          ...apiBody.customer,
+                          firstName,
+                          lastName,
+                      };
+            }
+        }
+
+        if (key === 'brand') {
+            if (typeof value === 'string') {
+                data = { brandName: '' };
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = {
+                    brandName: value.inputValue,
+                };
+            }
+        }
+
+        if (key === 'brandModel') {
+            if (typeof value === 'string') {
+                data = { modelName: '' };
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = {
+                    brandId: get(apiBody, 'brand.id', 0),
+                    modelName: value.inputValue,
+                };
+            }
+        }
+
+        if (key === 'serialNumber') {
+            if (typeof value === 'string') {
+                data = '';
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = value.inputValue;
+            }
+        }
+
+        if (key === 'expectedReturnDate') {
+            if (typeof value === 'string') {
+                data = '';
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = value.inputValue.toISOString();
+            }
+        }
+
+        if (key === 'expectedRepairingCost') {
+            if (typeof value === 'string') {
+                data = '';
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = value.inputValue;
+            }
+        }
+
+        setApiBody({
+            ...apiBody,
+            [key]: data,
+        });
+    };
+
+    const handleMultipleChange = (
+        key: Field,
+        values: MultipleSelectedValues,
     ) => {
-        if (reason === 'input') {
-            if (field === 'customerPhone') {
-                await fetchCustomers(searchValue);
-            }
+        const data = values;
 
-            if (field === 'brand') {
-                await fetchBrands(searchValue);
-            }
-
-            if (field === 'issue') {
-                await fetchIssues(searchValue);
-            }
-
-            if (field === 'brandModel') {
-                await fetchBrandModels(searchValue);
+        if (key === 'issues') {
+            const lastIssue = last(values);
+            if (typeof lastIssue === 'string') {
+                values.pop();
+            } else if (values.length && !isUndefined(lastIssue.inputValue)) {
+                last(data)['issue'] = lastIssue.inputValue;
+                delete last(data).inputValue;
             }
         }
+
+        setApiBody({
+            ...apiBody,
+            [key]: data,
+        });
     };
 
-    const handleValueSelected = async (field: Field, value: string) => {
-        if (field === 'customerPhone') {
-            const selectedValue = customerState.customers.find(
-                (customer) => customer.phone === value,
-            ) || {
-                id: 0,
-                firstName: '',
-                lastName: '',
-                phone: value as string,
-            };
-
-            setCustomerState({
-                ...customerState,
-                selectedValue,
-            });
-        }
-
-        if (field === 'customerName') {
-            setCustomerState({
-                ...customerState,
-                selectedValue: {
-                    ...customerState.selectedValue,
-                    firstName: value,
-                },
-            });
-        }
-
-        if (field === 'brand') {
-            setBrandState({
-                ...brandState,
-                selectedValue: brandState.brands.find(
-                    (brand) => brand.brandName === value,
-                ),
-            });
-        }
-
-        if (field === 'issue') {
-            setIssueState({
-                ...issueState,
-                selectedValue: issueState.issues.filter((issue) =>
-                    value.split('|').includes(issue.issue),
-                ),
-            });
-        }
-
-        if (field === 'brandModel') {
-            setBrandModelState({
-                ...brandModelState,
-                selectedValue: brandModelState.brandModels.find(
-                    (brandModel) => brandModel.modelName === value,
-                ),
-            });
-        }
-    };
-
-    const getFullName = (customer: Customer) =>
-        customer && customer.firstName && customer.lastName
+    const getFullName = (customer: Partial<Customer>) =>
+        customer && customer.firstName && !isUndefined(customer.lastName)
             ? `${customer.firstName} ${customer.lastName}`
             : (customer && customer.firstName) || '';
 
+    const formatErrorObject = (errors: Record<string, string[]>): Errors => {
+        const response: Errors = {};
+
+        Object.entries(errors).forEach(([key, value]) => {
+            set(response, key, value);
+        });
+        return response;
+    };
+
     const handleAddItem = async (event: MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-
-        const [customerFirstName, ...customerLastName] = get(
-            customerState.selectedValue,
-            'firstName',
-        ).split(' ');
-
-        const body: Body = {
-            customerId: get(customerState.selectedValue, 'id') || undefined,
-            customerPhone: get(customerState.selectedValue, 'phone'),
-            customerFirstName,
-            customerLastName: customerLastName.join(' '),
-            brandId: get(brandState.selectedValue, 'id'),
-            brandModelId: get(brandModelState.selectedValue, 'id'),
-            issueIds: map(issueState.selectedValue as Issue[], 'id'),
-            expectedRepairingCost,
-            expectedReturnDate: expectedReturnDate.toISOString(),
-        };
 
         setIsLoading(true);
 
         const { error } = await axios({
             url: 'repairing',
             method: 'post',
-            data: body,
+            data: apiBody,
         });
 
         setIsLoading(false);
 
         if (error) {
-            setErrors(error);
+            setErrors(formatErrorObject(error));
             return;
         }
 
+        redirectToRepairingListing(event);
+    };
+
+    const redirectToRepairingListing = (event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault()
         router.push('/repairing');
     };
 
     useEffect(() => {
         (async () =>
-            brandState.selectedValue
+            get(apiBody.brand, 'id')
                 ? await fetchBrandModels()
                 : setBrandModelState({
                       brandModels: [],
-                      selectedValue: null,
+                      searchValue: '',
                   }))();
-    }, [brandState.selectedValue]);
+    }, [apiBody.brand]);
 
     return (
         <DatePickerWrapper>
@@ -306,18 +473,33 @@ const AddItem = () => {
                             <Grid item xs={12} sm={6}>
                                 <Autocomplete
                                     freeSolo={true}
+                                    value={apiBody.customer}
+                                    options={customerState.customers}
+                                    getOptionLabel={(option) =>
+                                        getOptionLabel(option, 'phone')
+                                    }
+                                    filterOptions={(options, state) =>
+                                        filterOptions(options, state, 'phone')
+                                    }
+                                    onChange={(event, value) =>
+                                        handleChange('customer', value)
+                                    }
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             label="Phone"
                                             error={
-                                                !isEmpty(errors.customerId) ||
-                                                !isEmpty(errors.customerPhone)
+                                                !isEmpty(errors.customer) ||
+                                                has(errors, 'customer.phone')
                                             }
-                                            helperText={
-                                                first(errors.customerId) ||
-                                                !isEmpty(errors.customerPhone)
-                                            }
+                                            helperText={first(
+                                                isArray(get(errors, 'customer'))
+                                                    ? get(errors, 'customer')
+                                                    : get(
+                                                          errors,
+                                                          'customer.phone',
+                                                      ),
+                                            )}
                                             InputProps={{
                                                 ...params.InputProps,
                                                 type: 'number',
@@ -336,30 +518,8 @@ const AddItem = () => {
                                                     </Fragment>
                                                 ),
                                             }}
-                                            onBlur={(event) =>
-                                                handleValueSelected(
-                                                    'customerPhone',
-                                                    event.target.value,
-                                                )
-                                            }
                                         />
                                     )}
-                                    options={customerState.customers.map(
-                                        (customer: Customer) => customer.phone,
-                                    )}
-                                    onInputChange={(event, value, reason) =>
-                                        handleSearch(
-                                            'customerPhone',
-                                            value,
-                                            reason,
-                                        )
-                                    }
-                                    onChange={(event, value) =>
-                                        handleValueSelected(
-                                            'customerPhone',
-                                            value,
-                                        )
-                                    }
                                 />
                             </Grid>
                             <Grid item xs={12} sm={6}>
@@ -369,28 +529,24 @@ const AddItem = () => {
                                     variant="outlined"
                                     fullWidth={true}
                                     error={
-                                        !isEmpty(errors.customerFirstName) ||
-                                        !isEmpty(errors.customerLastName)
+                                        has(errors, 'customer.firstName') ||
+                                        has(errors, 'customer.lastName')
                                     }
                                     helperText={
-                                        first(errors.customerFirstName) ||
-                                        !isEmpty(errors.customerLastName)
+                                        first(
+                                            get(errors, 'customer.firstName'),
+                                        ) ||
+                                        first(get(errors, 'customer.lastName'))
                                     }
                                     disabled={
-                                        !get(
-                                            customerState.selectedValue,
-                                            'phone',
-                                        ) ||
-                                        get(customerState.selectedValue, 'id')
+                                        isEmpty(apiBody.customer) ||
+                                        !!get(apiBody.customer, 'id')
                                     }
-                                    value={getFullName(
-                                        customerState.selectedValue as Customer,
-                                    )}
+                                    value={getFullName(apiBody.customer)}
                                     onChange={(event) =>
-                                        handleValueSelected(
-                                            'customerName',
-                                            event.target.value,
-                                        )
+                                        handleChange('customer', {
+                                            inputValue: event.target.value,
+                                        })
                                     }
                                 />
                             </Grid>
@@ -404,12 +560,28 @@ const AddItem = () => {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Autocomplete
+                                    freeSolo={true}
+                                    value={apiBody.brand}
+                                    options={brandState.brands}
+                                    getOptionLabel={(option) =>
+                                        getOptionLabel(option, 'brandName')
+                                    }
+                                    filterOptions={(options, state) =>
+                                        filterOptions(
+                                            options,
+                                            state,
+                                            'brandName',
+                                        )
+                                    }
+                                    onChange={(event, value) =>
+                                        handleChange('brand', value)
+                                    }
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             label="Brand"
-                                            error={!isEmpty(errors.brandId)}
-                                            helperText={first(errors.brandId)}
+                                            error={!isEmpty(errors.brand)}
+                                            helperText={first(errors.brand)}
                                             InputProps={{
                                                 ...params.InputProps,
                                                 type: 'text',
@@ -430,28 +602,33 @@ const AddItem = () => {
                                             }}
                                         />
                                     )}
-                                    options={brandState.brands.map(
-                                        (brand) => brand.brandName,
-                                    )}
-                                    onInputChange={(event, value, reason) =>
-                                        handleSearch('brand', value, reason)
-                                    }
-                                    onChange={(event, value) =>
-                                        handleValueSelected('brand', value)
-                                    }
                                 />
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Autocomplete
+                                    freeSolo={true}
+                                    value={apiBody.brandModel}
+                                    options={brandModelState.brandModels}
+                                    getOptionLabel={(option) =>
+                                        getOptionLabel(option, 'modelName')
+                                    }
+                                    filterOptions={(option, state) =>
+                                        filterOptions(
+                                            option,
+                                            state,
+                                            'modelName',
+                                        )
+                                    }
+                                    onChange={(event, value) =>
+                                        handleChange('brandModel', value)
+                                    }
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             label="Model"
-                                            error={
-                                                !isEmpty(errors.brandModelId)
-                                            }
+                                            error={!isEmpty(errors.brandModel)}
                                             helperText={first(
-                                                errors.brandModelId,
+                                                errors.brandModel,
                                             )}
                                             InputProps={{
                                                 ...params.InputProps,
@@ -473,19 +650,6 @@ const AddItem = () => {
                                             }}
                                         />
                                     )}
-                                    options={brandModelState.brandModels.map(
-                                        (brandModel) => brandModel.modelName,
-                                    )}
-                                    onInputChange={(event, value, reason) =>
-                                        handleSearch(
-                                            'brandModel',
-                                            value,
-                                            reason,
-                                        )
-                                    }
-                                    onChange={(event, value) =>
-                                        handleValueSelected('brandModel', value)
-                                    }
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -502,12 +666,23 @@ const AddItem = () => {
                                     freeSolo={true}
                                     disableCloseOnSelect={true}
                                     limitTags={10}
+                                    value={apiBody.issues}
+                                    options={issueState.issues}
+                                    getOptionLabel={(option) =>
+                                        getOptionLabel(option, 'issue')
+                                    }
+                                    filterOptions={(option, state) =>
+                                        filterOptions(option, state, 'issue')
+                                    }
+                                    onChange={(event, value) =>
+                                        handleMultipleChange('issues', value)
+                                    }
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             label="Issue"
-                                            error={!isEmpty(errors.issueIds)}
-                                            helperText={first(errors.issueIds)}
+                                            error={!isEmpty(errors.issues)}
+                                            helperText={first(errors.issues)}
                                             InputProps={{
                                                 ...params.InputProps,
                                                 type: 'text',
@@ -528,18 +703,6 @@ const AddItem = () => {
                                             }}
                                         />
                                     )}
-                                    options={issueState.issues.map(
-                                        (issue) => issue.issue,
-                                    )}
-                                    onInputChange={(event, value, reason) =>
-                                        handleSearch('issue', value, reason)
-                                    }
-                                    onChange={(event, value) =>
-                                        handleValueSelected(
-                                            'issue',
-                                            value.join('|'),
-                                        )
-                                    }
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -551,16 +714,65 @@ const AddItem = () => {
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
-                                <LocalizationProvider dateAdapter={AdapterMoment}>
-                                <MobileDateTimePicker
-                                    disablePast={true}
-                                    value={expectedReturnDate}
-                                    onChange={(value) => setExpectedReturnDate(value)}
-                                    label='Expected Return Date'
-                                    inputFormat={DATE_TIME_FORMAT}
-                                    mask="____/__/__ __:__ _M"
-                                    renderInput={(params) => <TextField fullWidth={true} {...params} />}
+                                <TextField
+                                    label="Serial Number"
+                                    type="text"
+                                    variant="outlined"
+                                    fullWidth={true}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <QrCodeOutlined fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    value={apiBody.serialNumber}
+                                    error={!isEmpty(errors.serialNumber)}
+                                    helperText={first(errors.serialNumber)}
+                                    onChange={(event) =>
+                                        handleChange('serialNumber', {
+                                            inputValue: event.target.value,
+                                        })
+                                    }
                                 />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <LocalizationProvider
+                                    dateAdapter={AdapterMoment}
+                                >
+                                    <MobileDateTimePicker
+                                        disablePast={true}
+                                        value={apiBody.expectedReturnDate}
+                                        onChange={(value) =>
+                                            handleChange('expectedReturnDate', {
+                                                inputValue: value,
+                                            })
+                                        }
+                                        label="Expected Return Date"
+                                        inputFormat={DATE_TIME_FORMAT}
+                                        mask="____/__/__ __:__ _M"
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                fullWidth={true}
+                                                error={
+                                                    !isEmpty(
+                                                        errors.expectedReturnDate,
+                                                    )
+                                                }
+                                                helperText={first(
+                                                    errors.expectedReturnDate,
+                                                )}
+                                            />
+                                        )}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <CalendarMonthOutlined fontSize="small" />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
                                 </LocalizationProvider>
                             </Grid>
                             <Grid item xs={12} sm={6}>
@@ -576,18 +788,17 @@ const AddItem = () => {
                                             </InputAdornment>
                                         ),
                                     }}
+                                    value={apiBody.expectedRepairingCost}
                                     error={
                                         !isEmpty(errors.expectedRepairingCost)
                                     }
                                     helperText={first(
                                         errors.expectedRepairingCost,
                                     )}
-                                    value={expectedRepairingCost}
                                     onChange={(event) =>
-                                        setExpectedRepairingCost(
-                                            event.target
-                                                .value as unknown as number,
-                                        )
+                                        handleChange('expectedRepairingCost', {
+                                            inputValue: event.target.value,
+                                        })
                                     }
                                 />
                             </Grid>
@@ -595,17 +806,27 @@ const AddItem = () => {
                                 container
                                 item
                                 xs={12}
-                                justifyContent="flex-end"
+                                justifyContent="space-between"
                             >
+                                <Button
+                                    size="large"
+                                    color="error"
+                                    variant="outlined"
+                                    onClick={redirectToRepairingListing}
+                                >
+                                    Cancel
+                                </Button>
                                 <LoadingButton
                                     size="large"
                                     variant="contained"
                                     loading={isLoading}
                                     disabled={
-                                        !customerState.selectedValue ||
-                                        !brandState.selectedValue ||
-                                        !brandModelState.selectedValue ||
-                                        !issueState.selectedValue
+                                        !apiBody.customer ||
+                                        !apiBody.customer.firstName ||
+                                        !apiBody.brand ||
+                                        !apiBody.brandModel ||
+                                        !apiBody.issues ||
+                                        !apiBody.expectedRepairingCost
                                     }
                                     onClick={handleAddItem}
                                 >

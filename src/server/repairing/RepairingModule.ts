@@ -4,9 +4,10 @@ import { RepairingController } from './controllers';
 import { RepairingRepositoryDatabase } from './repositories';
 import { REPAIRING_REPOSITORY, REPAIRING_SERVICE } from './constants';
 import { CustomerModule } from '../customer';
+import { ItemModule } from '../items';
 
 @Module({
-    imports: [CustomerModule],
+    imports: [CustomerModule, ItemModule],
     controllers: [RepairingController],
     providers: [
         {

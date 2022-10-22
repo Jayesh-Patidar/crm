@@ -1,7 +1,7 @@
 import { RepositoryContract } from '@app/server/core';
-import { Issue } from '@app/shared';
-import { IIssuesForDropdown } from '../../interfaces';
+import { Issue, Pagination } from '@app/shared';
+import { IGetIssues } from '../../interfaces';
 
 export interface IssueRepositoryContract extends RepositoryContract<Issue> {
-    getIssuesForDropdown(inputs: IIssuesForDropdown): Promise<Issue[]>;
+    getIssues(inputs: IGetIssues): Promise<Pagination<Issue>>;
 }

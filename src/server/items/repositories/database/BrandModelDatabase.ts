@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BrandModel } from '../../models';
-import { BrandModel as IBrandModel } from '@app/shared';
-import { IBrandModelForDropdown } from '../../interfaces';
+import { BrandModel as IBrandModel, Pagination } from '@app/shared';
+import { IGetBrandModels } from '../../interfaces';
 import { BrandModelRepositoryContract } from '../contracts';
 import { DatabaseRepository, InjectModel } from '@app/server/core';
 
@@ -13,17 +13,13 @@ export class BrandModelRepositoryDatabase
     @InjectModel(BrandModel)
     model: BrandModel;
 
-    async getBrandModelsForDropdown(
-        inputs: IBrandModelForDropdown,
-    ): Promise<IBrandModel[]> {
-        const { brandId, searchValue } = inputs;
+    async getBrandModels(
+        inputs: IGetBrandModels,
+    ): Promise<Pagination<IBrandModel>> {
+        const { brandId, searchValue, page, limit } = inputs;
         return this.query()
-            .modify((query) => {
-                if (searchValue) {
-                    query.where('modelName', 'like', `%${searchValue}%`);
-                }
-            })
-            .where('brandId', brandId)
-            .limit(10);
+            .modify('searchBrandModels', searchValue)
+            .modify('searchByBrandId', brandId)
+            .paginate<IBrandModel>(page, limit);
     }
 }

@@ -1,27 +1,34 @@
+import { difference, uniqBy } from 'lodash';
+import { Inject, Injectable } from '@nestjs/common';
 import { CUSTOMER_SERVICE } from '@app/server/customer';
 import type { CustomerServiceContract } from '@app/server/customer';
-import { uniq } from 'lodash';
-import { Validator } from '@app/server/core';
-import { Inject, Injectable } from '@nestjs/common';
+import { GetRecordValidator, Validator } from '@app/server/core';
 import type { RepairingServiceContract } from './contracts';
 import {
     DATABASE_DATE_TIME_FORMAT,
     getFormattedDateAndTime,
     Pagination,
-    RepairingRecord,
+    RepairingDetails,
     REPAIRING_STATUS,
 } from '@app/shared';
 import type { RepairingRepositoryContract } from '../repositories';
-import {
-    CreateRepairingRecordValidator,
-    UpdateRepairingRecord,
-} from '../validators';
+import { CreateRepairingValidator, UpdateRepairing } from '../validators';
 import { REPAIRING_REPOSITORY } from '../constants';
 import {
-    ICreateRepairingRecord,
-    IGetRepairingRecords,
-    IUpdateRepairingRecord,
+    ICreateRepairing,
+    IGetRepairing,
+    IUpdateRepairing,
 } from '../interfaces';
+import {
+    BRAND_SERVICE,
+    BRAND_MODEL_SERVICE,
+    ISSUE_SERVICE,
+} from '@app/server/items/constants';
+import type {
+    BrandServiceContract,
+    BrandModelServiceContract,
+    IssueServiceContract,
+} from '@app/server/items';
 
 @Injectable()
 export class RepairingService implements RepairingServiceContract {
@@ -31,62 +38,83 @@ export class RepairingService implements RepairingServiceContract {
         private repairingRepository: RepairingRepositoryContract,
         @Inject(CUSTOMER_SERVICE)
         private customerService: CustomerServiceContract,
+        @Inject(BRAND_SERVICE)
+        private brandService: BrandServiceContract,
+        @Inject(BRAND_MODEL_SERVICE)
+        private brandModelService: BrandModelServiceContract,
+        @Inject(ISSUE_SERVICE)
+        private issueService: IssueServiceContract,
     ) {}
 
-    async getRepairingRecords(
-        inputs: IGetRepairingRecords,
-    ): Promise<Pagination<RepairingRecord>> {
+    async getRepairing(
+        inputs: IGetRepairing,
+    ): Promise<Pagination<RepairingDetails>> {
+        await this.validator.validate(inputs, GetRecordValidator);
+
         const { limit = 20, page = 1 } = inputs;
-        return this.repairingRepository.getRepairingRecords({
+
+        return this.repairingRepository.getRepairing({
             ...inputs,
             limit: +limit,
             page: +page,
         });
     }
 
-    async saveRepairingRecord(inputs: ICreateRepairingRecord): Promise<void> {
-        await this.validator.validate(inputs, CreateRepairingRecordValidator);
+    async createRepairing(inputs: ICreateRepairing): Promise<void> {
+        await this.validator.validate(inputs, CreateRepairingValidator);
 
-        let customerId = inputs.customerId;
-        const {
-            customerFirstName,
-            customerLastName,
-            customerPhone,
-            brandId,
-            brandModelId,
-            issueIds,
-            expectedReturnDate,
-            expectedRepairingCost,
-        } = inputs;
+        let { customer, brand, brandModel, issues } = inputs;
 
-        if (!customerId) {
-            const customer = await this.customerService.createCustomer({
-                firstName: customerFirstName,
-                lastName: customerLastName,
-                phone: customerPhone,
-            });
+        const { serialNumber, expectedReturnDate, expectedRepairingCost } =
+            inputs;
 
-            customerId = customer.id;
+        [customer, brand] = await Promise.all([
+            !customer.id
+                ? this.customerService.createCustomer(customer)
+                : customer,
+            !brand.id ? this.brandService.createBrand(brand) : brand,
+        ]);
+
+        brandModel = !brandModel.id
+            ? await this.brandModelService.createBrandModel({
+                  ...brandModel,
+                  brandId: brand.id,
+              })
+            : brandModel;
+
+        const newIssues = issues.filter((issue) => !issue.id);
+
+        if (newIssues.length) {
+            issues = difference(issues, newIssues);
+
+            issues.push(
+                ...(await Promise.all(
+                    newIssues.map((issue) =>
+                        this.issueService.createIssue(issue),
+                    ),
+                )),
+            );
         }
 
         await this.repairingRepository.query().insertGraph({
-            customerId: customerId,
-            brandId: brandId,
-            brandModelId: brandModelId,
+            customerId: customer.id,
+            brandId: brand.id,
+            brandModelId: brandModel.id,
+            serialNumber,
             status: REPAIRING_STATUS.PENDING,
             expectedRepairingCost,
             expectedReturnDate: getFormattedDateAndTime(
                 expectedReturnDate,
                 DATABASE_DATE_TIME_FORMAT,
             ),
-            repairingIssues: uniq(issueIds).map((issueId) => ({
-                issueId: issueId,
+            repairingIssues: uniqBy(issues, 'issue').map((issue) => ({
+                issueId: issue.id,
             })),
         });
     }
 
-    async updateRepairingRecord(inputs: IUpdateRepairingRecord): Promise<void> {
-        await this.validator.validate(inputs, UpdateRepairingRecord);
+    async updateRepairing(inputs: IUpdateRepairing): Promise<void> {
+        await this.validator.validate(inputs, UpdateRepairing);
 
         const { repairingId, status, actualRepairingCost } = inputs;
 

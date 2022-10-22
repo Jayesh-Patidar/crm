@@ -1,7 +1,7 @@
-import { Brand } from '@app/shared';
+import { Brand, Pagination } from '@app/shared';
 import { RepositoryContract } from '@app/server/core';
-import { IBrandsForDropdown } from '../../interfaces';
+import { IGetBrands } from '../../interfaces';
 
 export interface BrandRepositoryContract extends RepositoryContract<Brand> {
-    getBrandsForDropdown(inputs: IBrandsForDropdown): Promise<Brand[]>;
+    getBrands(inputs: IGetBrands): Promise<Pagination<Brand>>;
 }

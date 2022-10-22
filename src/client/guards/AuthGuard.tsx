@@ -12,15 +12,15 @@ const AuthGuard = (props: Props) => {
     const router = useRouter();
     const authenticatedUser = useSelector(selectAuthenticatedUser);
 
-    useEffect(() => {
-        const publicPaths = ['/login'];
-        const currentPath = router.asPath.split('?')[0];
-        if (!publicPaths.includes(currentPath) && !authenticatedUser) {
-            router.push('/login');
-        } else if (authenticatedUser && publicPaths.includes(currentPath)) {
-            router.push('/')
-        }
-    }, [authenticatedUser]);
+    // useEffect(() => {
+    //     const publicPaths = ['/login'];
+    //     const currentPath = router.asPath.split('?')[0];
+    //     if (!publicPaths.includes(currentPath) && !authenticatedUser) {
+    //         router.push('/login');
+    //     } else if (authenticatedUser && publicPaths.includes(currentPath)) {
+    //         router.push('/')
+    //     }
+    // }, [authenticatedUser]);
 
     return <>{children}</>;
 };

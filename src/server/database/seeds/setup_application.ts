@@ -3,10 +3,13 @@ import { findIndex, sortBy, uniqBy } from 'lodash';
 import { ISSUE_TYPE } from '../../../shared';
 import brandDetails from '../../../../laptop.json';
 
-interface Issues {
+interface Issue {
     issue: string;
     issueType: number;
-    approximateTimeToFix: number;
+    approximateTimeToFix: number | null;
+    isFixedTime: boolean;
+    approximateCostToFix: number | null;
+    isFixedCost: boolean;
 }
 
 export async function seed(knex: Knex): Promise<void> {
@@ -45,26 +48,38 @@ export async function seed(knex: Knex): Promise<void> {
         knex('brand_models').transacting(transaction).insert(brandModels),
     );
 
-    const issues: Issues[] = [
+    const issues: Issue[] = [
         {
             issue: 'Software update',
             issueType: ISSUE_TYPE.Software,
             approximateTimeToFix: 2,
+            isFixedTime: true,
+            approximateCostToFix: null,
+            isFixedCost: true,
         },
         {
             issue: 'System format',
             issueType: ISSUE_TYPE.Software,
             approximateTimeToFix: 2,
+            isFixedTime: true,
+            approximateCostToFix: null,
+            isFixedCost: true,
         },
         {
             issue: 'Black display',
             issueType: ISSUE_TYPE.Hardware,
             approximateTimeToFix: 7,
+            isFixedTime: true,
+            approximateCostToFix: null,
+            isFixedCost: true,
         },
         {
             issue: 'Ram not working',
             issueType: ISSUE_TYPE.Hardware,
             approximateTimeToFix: 4,
+            isFixedTime: true,
+            approximateCostToFix: null,
+            isFixedCost: true,
         },
     ];
 

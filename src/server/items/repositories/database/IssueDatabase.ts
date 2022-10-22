@@ -1,7 +1,7 @@
 import { DatabaseRepository, InjectModel } from '@app/server/core';
-import { Issue as IIssue } from '@app/shared';
+import { Issue as IIssue, Pagination } from '@app/shared';
 import { Injectable } from '@nestjs/common';
-import { IIssuesForDropdown } from '../../interfaces';
+import { IGetIssues } from '../../interfaces';
 import { Issue } from '../../models';
 import { IssueRepositoryContract } from '../contracts';
 
@@ -13,14 +13,10 @@ export class IssueRepositoryDatabase
     @InjectModel(Issue)
     model: Issue;
 
-    async getIssuesForDropdown(inputs: IIssuesForDropdown): Promise<IIssue[]> {
-        const { searchValue } = inputs;
+    async getIssues(inputs: IGetIssues): Promise<Pagination<IIssue>> {
+        const { searchValue, limit, page } = inputs;
         return this.query()
-            .modify((query) => {
-                if (searchValue) {
-                    query.where('issue', 'like', `%${searchValue}%`);
-                }
-            })
-            .limit(10);
+            .modify('searchIssues', searchValue)
+            .paginate<IIssue>(page, limit);
     }
 }

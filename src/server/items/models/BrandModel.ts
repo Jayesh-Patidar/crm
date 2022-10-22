@@ -12,5 +12,19 @@ export class BrandModel extends Model {
                 'brand_models.modelName',
             );
         },
+
+        searchBrandModels(query, searchValue?: string) {
+            if (searchValue) {
+                query.where(
+                    'brand_models.modelName',
+                    'like',
+                    `%${searchValue}%`,
+                );
+            }
+        },
+
+        searchByBrandId(query, brandId?: number) {
+            query.where('brandId', brandId || 0);
+        },
     };
 }

@@ -9,7 +9,7 @@ import {
     ValidateIf,
 } from 'class-validator';
 
-export class UpdateRepairingRecord {
+export class UpdateRepairing {
     @IsDefined()
     @IsNumber()
     @Type(() => Number)

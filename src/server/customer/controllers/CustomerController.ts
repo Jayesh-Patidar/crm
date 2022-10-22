@@ -2,8 +2,8 @@ import type { Request, Response } from '@app/server/core';
 import { ApiController } from '@app/server/core';
 import { CUSTOMER_SERVICE } from '../constants';
 import type { CustomerServiceContract } from '../services';
-import { Controller, Get, Inject, Req, Res } from '@nestjs/common';
-import { ICustomerForDropdown } from '../interfaces';
+import { Controller, Get, Post, Inject, Req, Res } from '@nestjs/common';
+import { ICreateCustomer, IGetCustomers } from '../interfaces';
 
 @Controller('customer')
 export class CustomerController extends ApiController {
@@ -15,15 +15,25 @@ export class CustomerController extends ApiController {
     }
 
     @Get('')
-    async getCustomersForDropdown(
+    async getCustomers(
         @Req() req: Request,
         @Res() res: Response,
     ): Promise<Response> {
-        const inputs = req.all<ICustomerForDropdown>();
+        const inputs = req.all<IGetCustomers>();
 
-        const customers = await this.customerService.customersForDropdown(
-            inputs,
-        );
+        const customers = await this.customerService.getCustomers(inputs);
+
+        return res.success(customers);
+    }
+
+    @Post('')
+    async createCustomer(
+        @Req() req: Request,
+        @Res() res: Response,
+    ): Promise<Response> {
+        const inputs = req.all<ICreateCustomer>();
+
+        const customers = await this.customerService.createCustomer(inputs);
 
         return res.success(customers);
     }

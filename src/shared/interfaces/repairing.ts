@@ -9,6 +9,7 @@ export interface Repairing {
     customerId: number;
     brandId: number;
     brandModelId: number;
+    serialNumber: string | null;
     status: number;
     expectedRepairingCost: number;
     actualRepairingCost: number | null;
@@ -19,7 +20,7 @@ export interface Repairing {
     deletedAt?: null;
 }
 
-export interface RepairingRecord extends Repairing {
+export interface RepairingDetails extends Repairing {
     customer: Customer;
     brand: Brand;
     brandModel: BrandModel;

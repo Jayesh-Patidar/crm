@@ -3,9 +3,9 @@ import { ApiController } from '@app/server/core';
 import type { Request, Response } from '@app/server/core';
 import type { RepairingServiceContract } from '../services';
 import {
-    ICreateRepairingRecord,
-    IGetRepairingRecords,
-    IUpdateRepairingRecord,
+    ICreateRepairing,
+    IGetRepairing,
+    IUpdateRepairing,
 } from '../interfaces';
 import { Controller, Get, Post, Patch, Inject, Req, Res } from '@nestjs/common';
 
@@ -19,37 +19,37 @@ export class RepairingController extends ApiController {
     }
 
     @Get('')
-    async getRepairingRecords(
+    async getRepairing(
         @Req() req: Request,
         @Res() res: Response,
     ): Promise<Response> {
-        const inputs = req.all<IGetRepairingRecords>();
+        const inputs = req.all<IGetRepairing>();
 
-        const repairingRecords =
-            await this.repairingService.getRepairingRecords(inputs);
-        return res.success(repairingRecords);
+        const repairing = await this.repairingService.getRepairing(inputs);
+
+        return res.success(repairing);
     }
 
     @Post('')
-    async saveRepairingRecord(
+    async createRepairing(
         @Req() req: Request,
         @Res() res: Response,
     ): Promise<Response> {
-        const inputs = req.all<ICreateRepairingRecord>();
+        const inputs = req.all<ICreateRepairing>();
 
-        await this.repairingService.saveRepairingRecord(inputs);
+        await this.repairingService.createRepairing(inputs);
 
         return res.noContent();
     }
 
     @Patch(':repairingId')
-    async updateRepairingRecord(
+    async updateRepairing(
         @Req() req: Request,
         @Res() res: Response,
     ): Promise<Response> {
-        const inputs = req.all<IUpdateRepairingRecord>();
+        const inputs = req.all<IUpdateRepairing>();
 
-        await this.repairingService.updateRepairingRecord(inputs);
+        await this.repairingService.updateRepairing(inputs);
 
         return res.noContent();
     }

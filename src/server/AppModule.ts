@@ -2,7 +2,7 @@ import config from '@config/index';
 import { AuthModule } from './auth';
 import { UserModule } from './user';
 import { CoreModule } from './core';
-import { BrandModule } from './items';
+import { ItemModule } from './items';
 import { CustomerModule } from './customer';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -18,7 +18,7 @@ import { RepairingModule } from './repairing';
         CoreModule,
         UserModule,
         AuthModule,
-        BrandModule,
+        ItemModule,
         CustomerModule,
         RepairingModule,
     ],

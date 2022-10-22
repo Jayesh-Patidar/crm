@@ -1,1 +1,1 @@
-export * from './CreateCustomerRecord';
+export * from './CreateCustomer';

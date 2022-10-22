@@ -4,24 +4,25 @@ import {
     IsString,
     IsOptional,
     IsNotEmpty,
-    ValidateIf,
+    MaxLength,
 } from '@app/server/core';
 
-export class CreateCustomerRecordValidator {
-    @ValidateIf(({ customerId }) => !customerId)
+export class CreateCustomerValidator {
     @IsDefined()
     @IsNotEmpty()
     @IsString()
+    @MaxLength(50)
     firstName: string;
 
-    @ValidateIf(({ customerId }) => !customerId)
     @IsOptional()
     @IsNotEmpty()
     @IsString()
+    @MaxLength(50)
     lastName: string;
 
     @IsDefined()
     @IsNotEmpty()
     @IsPhoneNumber('IN')
+    @MaxLength(15)
     phone: string;
 }

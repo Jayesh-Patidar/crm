@@ -111,7 +111,7 @@ const Navigation = (props: Props) => {
             >
                 {/* @ts-ignore */}
                 <ScrollWrapper
-                    containerRef={(ref: any) => handleInfiniteScroll(ref)}
+                    ref={(ref: any) => handleInfiniteScroll(ref)}
                     {...(hidden
                         ? {
                               onScroll: (container: any) =>

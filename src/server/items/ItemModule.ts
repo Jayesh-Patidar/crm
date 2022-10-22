@@ -1,10 +1,10 @@
 import {
-    BRANDS_SERVICE,
-    BRANDS_REPOSITORY,
-    BRAND_MODELS_SERVICE,
-    BRAND_MODELS_REPOSITORY,
-    ISSUES_REPOSITORY,
-    ISSUES_SERVICE,
+    BRAND_SERVICE,
+    BRAND_REPOSITORY,
+    BRAND_MODEL_SERVICE,
+    BRAND_MODEL_REPOSITORY,
+    ISSUE_REPOSITORY,
+    ISSUE_SERVICE,
 } from './constants';
 import {
     BrandRepositoryDatabase,
@@ -23,29 +23,43 @@ import {
     controllers: [BrandController, IssueController, BrandModelController],
     providers: [
         {
-            provide: BRANDS_REPOSITORY,
+            provide: BRAND_REPOSITORY,
             useClass: BrandRepositoryDatabase,
         },
         {
-            provide: BRANDS_SERVICE,
+            provide: BRAND_SERVICE,
             useClass: BrandService,
         },
         {
-            provide: BRAND_MODELS_REPOSITORY,
+            provide: BRAND_MODEL_REPOSITORY,
             useClass: BrandModelRepositoryDatabase,
         },
         {
-            provide: BRAND_MODELS_SERVICE,
+            provide: BRAND_MODEL_SERVICE,
             useClass: BrandModelService,
         },
         {
-            provide: ISSUES_REPOSITORY,
+            provide: ISSUE_REPOSITORY,
             useClass: IssueRepositoryDatabase,
         },
         {
-            provide: ISSUES_SERVICE,
+            provide: ISSUE_SERVICE,
+            useClass: IssueService,
+        },
+    ],
+    exports: [
+        {
+            provide: BRAND_SERVICE,
+            useClass: BrandService,
+        },
+        {
+            provide: BRAND_MODEL_SERVICE,
+            useClass: BrandModelService,
+        },
+        {
+            provide: ISSUE_SERVICE,
             useClass: IssueService,
         },
     ],
 })
-export class BrandModule {}
+export class ItemModule {}

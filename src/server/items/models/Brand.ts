@@ -8,5 +8,11 @@ export class Brand extends Model {
         defaultSelects(query) {
             query.select('brands.id', 'brands.brandName');
         },
+
+        searchBrands(query, searchValue: string) {
+            if (searchValue) {
+                query.where('brands.brandName', 'like', `%${searchValue}%`);
+            }
+        },
     };
 }

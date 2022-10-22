@@ -1,10 +1,8 @@
 import { RepositoryContract } from '@app/server/core';
-import { IGetRepairingRecords } from '../../interfaces';
-import { Pagination, Repairing, RepairingRecord } from '@app/shared';
+import { IGetRepairing } from '../../interfaces';
+import { Pagination, Repairing, RepairingDetails } from '@app/shared';
 
 export interface RepairingRepositoryContract
     extends RepositoryContract<Repairing> {
-    getRepairingRecords(
-        inputs: IGetRepairingRecords,
-    ): Promise<Pagination<RepairingRecord>>;
+    getRepairing(inputs: IGetRepairing): Promise<Pagination<RepairingDetails>>;
 }

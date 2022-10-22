@@ -42,8 +42,6 @@ export class ExceptionHandler extends BaseExceptionFilter {
             exception.message ||
             'Something went wrong. Please try again later!';
 
-        console.log(exception);
-
         const status = exception.status || HttpStatus.INTERNAL_SERVER_ERROR;
         message = exception.status ? message : 'Internal Server Error';
 

@@ -3,10 +3,10 @@ import { Injectable } from '@nestjs/common';
 import {
     Pagination,
     Repairing as IRepairing,
-    RepairingRecord,
+    RepairingDetails,
     REPAIRING_STATUS,
 } from '@app/shared';
-import { IGetRepairingRecords } from '../../interfaces';
+import { IGetRepairing } from '../../interfaces';
 import { RepairingRepositoryContract } from '../contracts';
 import { DatabaseRepository, InjectModel } from '@app/server/core';
 
@@ -18,17 +18,17 @@ export class RepairingRepositoryDatabase
     @InjectModel(Repairing)
     model: Repairing;
 
-    async getRepairingRecords(
-        inputs: IGetRepairingRecords,
-    ): Promise<Pagination<RepairingRecord>> {
+    async getRepairing(
+        inputs: IGetRepairing,
+    ): Promise<Pagination<RepairingDetails>> {
         const { limit, page, searchValue } = inputs;
         const repairingRecords = await this.query()
             .withGraphJoined(
                 `[
-                customer(defaultSelects),
-                brand(defaultSelects),
-                brandModel(defaultSelects),
-            ]`,
+                    customer(defaultSelects),
+                    brand(defaultSelects),
+                    brandModel(defaultSelects),
+                ]`,
             )
             .modify((query) => {
                 if (searchValue) {
@@ -56,20 +56,20 @@ export class RepairingRepositoryDatabase
             .orderBy('status', 'asc')
             .orderByRaw(
                 `CASE
-                WHEN repairing.status = ${REPAIRING_STATUS.PENDING}
-                THEN repairing.expected_return_date
-                WHEN repairing.status = ${REPAIRING_STATUS.REPAIRED}
-                THEN repairing.actual_return_date
-                ELSE repairing.id
-            END ASC`,
+                    WHEN repairing.status = ${REPAIRING_STATUS.PENDING}
+                        THEN repairing.expected_return_date
+                    WHEN repairing.status = ${REPAIRING_STATUS.REPAIRED}
+                        THEN repairing.actual_return_date
+                    ELSE repairing.id
+                END ASC`,
             )
-            .paginate<RepairingRecord>(page, limit);
+            .paginate<RepairingDetails>(page, limit);
 
         const repairingRecordsWithIssues = await this.query()
             .withGraphFetched(
                 `[
-                issues(defaultSelects),
-            ]`,
+                    issues(defaultSelects),
+                ]`,
             )
             .whereIn(
                 'id',
@@ -82,7 +82,7 @@ export class RepairingRepositoryDatabase
             records: repairingRecords.records.map((repairingRecord) => ({
                 ...repairingRecord,
                 issues: repairingRecordsWithIssues.find(
-                    (repairingIssue: RepairingRecord) =>
+                    (repairingIssue: RepairingDetails) =>
                         repairingIssue.id === repairingRecord.id,
                 ).issues,
             })),

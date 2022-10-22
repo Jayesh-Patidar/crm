@@ -7,7 +7,7 @@ import {
     getFormattedDateAndTime,
     getFullName,
     Pagination,
-    RepairingRecord,
+    RepairingDetails,
     REPAIRING_STATUS,
     REPAIRING_STATUS_REVERSE,
 } from '@app/shared';
@@ -140,9 +140,9 @@ type Errors = {
 const Repairing = ({ searchValue, search }: RepairingProps) => {
     const router = useRouter();
     const { axios } = useAxios();
-    const [repairingRecords, setRepairingRecords] = useState<RepairingRecord[]>(
-        [],
-    );
+    const [repairingRecords, setRepairingRecords] = useState<
+        RepairingDetails[]
+    >([]);
     const [pagination, setPagination] = useState<
         Pagination<[]>['pagination'] | undefined
     >(undefined);
@@ -158,9 +158,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
         status: [],
     });
 
-    const fetchRepairingRecords = async (
-        fetchFreshRecords = false,
-    ) => {
+    const fetchRepairingRecords = async (fetchFreshRecords = false) => {
         setIsLoading(true);
 
         let url = 'repairing';
@@ -175,7 +173,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                 url.indexOf('?') > -1 ? `&${searchQuery}` : `?${searchQuery}`;
         }
 
-        const { data } = await axios<Pagination<RepairingRecord>>({
+        const { data } = await axios<Pagination<RepairingDetails>>({
             method: 'get',
             url,
         });
@@ -293,7 +291,18 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                             {
                                                 repairingRecord.brandModel
                                                     .modelName
-                                            }
+                                            }{' '}
+                                            {repairingRecord.serialNumber ? (
+                                                <>
+                                                    (
+                                                    {
+                                                        repairingRecord.serialNumber
+                                                    }
+                                                    )
+                                                </>
+                                            ) : (
+                                                ''
+                                            )}
                                         </Typography>
                                         <Divider
                                             sx={{
@@ -415,7 +424,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                             }}
                                         />
                                         <Grid container spacing={4}>
-                                            <Grid item xs={12} >
+                                            <Grid item xs={12}>
                                                 <Box>
                                                     <Tooltip
                                                         title={
@@ -516,7 +525,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                                     </Tooltip>
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={12} >
+                                            <Grid item xs={12}>
                                                 <Tooltip
                                                     title={
                                                         repairingRecord.actualRepairingCost

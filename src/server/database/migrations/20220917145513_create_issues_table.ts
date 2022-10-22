@@ -6,8 +6,12 @@ export async function up(knex: Knex): Promise<void> {
         table.string('issue');
         table
             .specificType('issue_type', 'TINYINT(1)')
+            .nullable()
             .comment('1-Hardware, 2-Software');
         table.integer('approximate_time_to_fix').nullable().comment('In hours');
+        table.boolean('is_fixed_time').defaultTo(false);
+        table.decimal('approximate_cost_to_fix', 12, 2).nullable();
+        table.boolean('is_fixed_cost').defaultTo(false);
         table
             .timestamp('created_at')
             .notNullable()

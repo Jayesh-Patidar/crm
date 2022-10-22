@@ -1,14 +1,12 @@
-import { Pagination, RepairingRecord } from '@app/shared';
+import { Pagination, RepairingDetails } from '@app/shared';
 import {
-    ICreateRepairingRecord,
-    IGetRepairingRecords,
-    IUpdateRepairingRecord,
+    ICreateRepairing,
+    IGetRepairing,
+    IUpdateRepairing,
 } from '../../interfaces';
 
 export interface RepairingServiceContract {
-    getRepairingRecords(
-        inputs: IGetRepairingRecords,
-    ): Promise<Pagination<RepairingRecord>>;
-    saveRepairingRecord(inputs: ICreateRepairingRecord): Promise<void>;
-    updateRepairingRecord(inputs: IUpdateRepairingRecord): Promise<void>;
+    getRepairing(inputs: IGetRepairing): Promise<Pagination<RepairingDetails>>;
+    createRepairing(inputs: ICreateRepairing): Promise<void>;
+    updateRepairing(inputs: IUpdateRepairing): Promise<void>;
 }

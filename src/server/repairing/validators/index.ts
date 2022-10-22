@@ -1,2 +1,2 @@
-export * from './CreateRepairingRecord';
-export * from './UpdateRepairingRecord';
+export * from './CreateRepairing';
+export * from './UpdateRepairing';

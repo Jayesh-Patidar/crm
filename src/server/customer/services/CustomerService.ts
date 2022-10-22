@@ -1,11 +1,11 @@
-import { Customer } from '@app/shared';
+import { Customer, Pagination } from '@app/shared';
 import { Inject, Injectable } from '@nestjs/common';
 import { CUSTOMER_REPOSITORY } from '../constants';
 import type { CustomerServiceContract } from './contracts';
-import { ICreateCustomer, ICustomerForDropdown } from '../interfaces';
+import { ICreateCustomer, IGetCustomers } from '../interfaces';
 import type { CustomerRepositoryContract } from '../repositories';
-import { Validator } from '@app/server/core';
-import { CreateCustomerRecordValidator } from '../validators';
+import { GetRecordValidator, Validator } from '@app/server/core';
+import { CreateCustomerValidator } from '../validators';
 
 @Injectable()
 export class CustomerService implements CustomerServiceContract {
@@ -15,18 +15,18 @@ export class CustomerService implements CustomerServiceContract {
         private customerRepository: CustomerRepositoryContract,
     ) {}
 
+    async getCustomers(inputs: IGetCustomers): Promise<Pagination<Customer>> {
+        await this.validator.validate(inputs, GetRecordValidator);
+
+        return this.customerRepository.getCustomers(inputs);
+    }
+
     async createCustomer(inputs: ICreateCustomer): Promise<Customer> {
-        await this.validator.validate(inputs, CreateCustomerRecordValidator);
+        await this.validator.validate(inputs, CreateCustomerValidator);
 
         return this.customerRepository.firstOrCreate(
             { phone: inputs.phone },
             inputs,
         );
-    }
-
-    async customersForDropdown(
-        inputs: ICustomerForDropdown,
-    ): Promise<Customer[]> {
-        return this.customerRepository.getCustomerForDropdown(inputs);
     }
 }

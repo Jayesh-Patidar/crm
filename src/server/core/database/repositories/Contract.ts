@@ -15,7 +15,7 @@ export interface RepositoryContract<T extends Record<string, any>> {
      * Get the first instance or create and return a new instance.
      */
     firstOrCreate(
-        condition: Record<string, any>,
-        data: Record<string, any>,
+        condition?: Record<string, any>,
+        data?: Record<string, any>,
     ): Promise<T>;
 }

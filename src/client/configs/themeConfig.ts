@@ -1,5 +1,6 @@
 import { PaletteMode } from '@mui/material';
 import { ContentWidth } from '../@core/layouts';
+import { getThemeMode } from '../utils/helper';
 
 type ThemeConfig = {
     mode: PaletteMode;
@@ -15,7 +16,7 @@ type ThemeConfig = {
 const themeConfig: ThemeConfig = {
     // ** Layout Configs
     templateName: 'CRM' /* App Name */,
-    mode: 'light' /* light | dark */,
+    mode: getThemeMode() /* light | dark */,
     contentWidth: 'boxed' /* full | boxed */,
 
     // ** Routing Configs
