@@ -64,7 +64,10 @@ const App = (props: ExtendedAppProps) => {
                         {getLayout(<Component {...pageProps} />)}
                         <Snackbar
                             open={snackbar.isVisible}
-                            autoHideDuration={5000}
+                            sx={{
+                                display: snackbar.isVisible ? 'inherit' : 'none',
+                            }}
+                            autoHideDuration={3000}
                             onClose={handleClose}
                             anchorOrigin={{
                                 vertical: 'top',

@@ -1,7 +1,7 @@
-import { ReactNode, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useSelector } from 'react-redux';
-import { selectAuthenticatedUser } from '../ducks/auth';
+import { ReactNode } from 'react';
+// import { useRouter } from 'next/router';
+// import { useSelector } from 'react-redux';
+// import { selectAuthenticatedUser } from '../ducks/auth';
 
 interface Props {
     children: ReactNode;
@@ -9,8 +9,8 @@ interface Props {
 
 const AuthGuard = (props: Props) => {
     const { children } = props;
-    const router = useRouter();
-    const authenticatedUser = useSelector(selectAuthenticatedUser);
+    // const router = useRouter();
+    // const authenticatedUser = useSelector(selectAuthenticatedUser);
 
     // useEffect(() => {
     //     const publicPaths = ['/login'];

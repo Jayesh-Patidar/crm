@@ -1,11 +1,19 @@
 import { Module } from '@nestjs/common';
-import { CustomerService } from './services';
-import { CustomerController } from './controllers';
-import { CustomerRepositoryDatabase } from './repositories';
-import { CUSTOMER_REPOSITORY, CUSTOMER_SERVICE } from './constants';
+import { CustomerService, LocalityService } from './services';
+import { CustomerController, LocalityController } from './controllers';
+import {
+    CustomerRepositoryDatabase,
+    LocalityRepositoryDatabase,
+} from './repositories';
+import {
+    CUSTOMER_REPOSITORY,
+    CUSTOMER_SERVICE,
+    LOCALITY_REPOSITORY,
+    LOCALITY_SERVICE,
+} from './constants';
 
 @Module({
-    controllers: [CustomerController],
+    controllers: [CustomerController, LocalityController],
     providers: [
         {
             provide: CUSTOMER_REPOSITORY,
@@ -15,11 +23,23 @@ import { CUSTOMER_REPOSITORY, CUSTOMER_SERVICE } from './constants';
             provide: CUSTOMER_SERVICE,
             useClass: CustomerService,
         },
+        {
+            provide: LOCALITY_REPOSITORY,
+            useClass: LocalityRepositoryDatabase,
+        },
+        {
+            provide: LOCALITY_SERVICE,
+            useClass: LocalityService,
+        },
     ],
     exports: [
         {
             provide: CUSTOMER_SERVICE,
             useClass: CustomerService,
+        },
+        {
+            provide: LOCALITY_SERVICE,
+            useClass: LocalityService,
         },
     ],
 })

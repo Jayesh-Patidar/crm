@@ -6,9 +6,4 @@ export interface IGetIssues {
 
 export interface ICreateIssue {
     issue: string;
-    issueType?: number;
-    approximateTimeToFix?: number;
-    isFixedTime?: number;
-    approximateCostToFix?: number;
-    isFixedCost?: number;
 }

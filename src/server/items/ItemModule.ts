@@ -5,22 +5,36 @@ import {
     BRAND_MODEL_REPOSITORY,
     ISSUE_REPOSITORY,
     ISSUE_SERVICE,
+    ACCESSORY_REPOSITORY,
+    ACCESSORY_SERVICE,
 } from './constants';
 import {
     BrandRepositoryDatabase,
     BrandModelRepositoryDatabase,
     IssueRepositoryDatabase,
+    AccessoryRepositoryDatabase,
 } from './repositories';
 import { Module } from '@nestjs/common';
-import { BrandModelService, BrandService, IssueService } from './services';
 import {
+    AccessoryService,
+    BrandModelService,
+    BrandService,
+    IssueService,
+} from './services';
+import {
+    AccessoryController,
     BrandController,
     BrandModelController,
     IssueController,
 } from './controllers';
 
 @Module({
-    controllers: [BrandController, IssueController, BrandModelController],
+    controllers: [
+        BrandController,
+        IssueController,
+        BrandModelController,
+        AccessoryController,
+    ],
     providers: [
         {
             provide: BRAND_REPOSITORY,
@@ -46,6 +60,14 @@ import {
             provide: ISSUE_SERVICE,
             useClass: IssueService,
         },
+        {
+            provide: ACCESSORY_REPOSITORY,
+            useClass: AccessoryRepositoryDatabase,
+        },
+        {
+            provide: ACCESSORY_SERVICE,
+            useClass: AccessoryService,
+        },
     ],
     exports: [
         {
@@ -59,6 +81,10 @@ import {
         {
             provide: ISSUE_SERVICE,
             useClass: IssueService,
+        },
+        {
+            provide: ACCESSORY_SERVICE,
+            useClass: AccessoryService,
         },
     ],
 })

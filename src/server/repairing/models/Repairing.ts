@@ -1,5 +1,5 @@
 import { Model } from '@app/server/core';
-import { Customer } from '@app/server/customer';
+import { Customer, Locality } from '@app/server/customer';
 import { RepairingIssue } from './RepairingIssue';
 import { Brand, BrandModel, Issue } from '@app/server/items';
 import { RelationMappings, RelationMappingsThunk } from 'objection';
@@ -14,6 +14,15 @@ export class Repairing extends Model {
             join: {
                 from: 'repairing.customerId',
                 to: 'customers.id',
+            },
+        },
+
+        locality: {
+            relation: Model.BelongsToOneRelation,
+            modelClass: Locality,
+            join: {
+                from: 'repairing.localityId',
+                to: 'localities.id',
             },
         },
 

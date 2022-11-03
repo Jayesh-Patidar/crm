@@ -1,4 +1,4 @@
-import { setSearchValue } from '@app/client/@core/ducks';
+import { setRepairingStatus, setSearchValue } from '@app/client/@core/ducks';
 import { Menu, Search } from '@mui/icons-material';
 import {
     Box,
@@ -6,6 +6,8 @@ import {
     InputAdornment,
     TextField,
     Theme,
+    ToggleButton,
+    ToggleButtonGroup,
     useMediaQuery,
 } from '@mui/material';
 import {
@@ -19,15 +21,25 @@ import { connect } from 'react-redux';
 import { useState, useEffect } from 'react';
 import ModeToggler from '../shared-components/footer/ModeToggler';
 import UserDropdown from '../shared-components/UserDropdown';
+import { REPAIRING_STATUS_REVERSE } from '@app/shared';
+import { AppState } from '@app/client/ducks/store';
 
 interface Props {
     hidden: boolean;
     search: ActionCreatorWithOptionalPayload<string, string>;
+    repairingStatus: string;
+    searchByRepairingStatus: ActionCreatorWithOptionalPayload<string, string>;
     toggleNavVisibility: () => void;
 }
 
 const AppBarContent = (props: Props) => {
-    const { hidden, search, toggleNavVisibility } = props;
+    const {
+        hidden,
+        search,
+        repairingStatus,
+        searchByRepairingStatus,
+        toggleNavVisibility,
+    } = props;
 
     const [input, setInput] = useState<string>('');
 
@@ -60,7 +72,7 @@ const AppBarContent = (props: Props) => {
                     mr: 2,
                     display: 'flex',
                     alignItems: 'center',
-                    width: '60%',
+                    width: '100%',
                 }}
             >
                 {hidden ? (
@@ -76,18 +88,41 @@ const AppBarContent = (props: Props) => {
                     <TextField
                         size="small"
                         sx={{
-                            '& .MuiOutlinedInput-root': { borderRadius: 4 },
-                            width: '60%',
+                            '& .MuiOutlinedInput-root': {
+                                borderTopLeftRadius: 24,
+                                borderBottomLeftRadius: 24,
+                                paddingRight: 0,
+                            },
+                            width: '100%',
                         }}
                         type="search"
                         value={input}
                         onChange={(event) => setInput(event.target.value)}
-                        placeholder="Search by Id, Customer Details, Brand Details from here"
+                        placeholder="Search by Id, Serial Number, Customer Details, Brand Details from here"
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">
                                     <Search fontSize="small" />
                                 </InputAdornment>
+                            ),
+                            endAdornment: (
+                                <ToggleButtonGroup
+                                    color="primary"
+                                    exclusive={true}
+                                    value={repairingStatus}
+                                    onChange={(event, value) =>
+                                        searchByRepairingStatus(value)
+                                    }
+                                    aria-label="Repairing Status"
+                                >
+                                    {Object.entries(
+                                        REPAIRING_STATUS_REVERSE,
+                                    ).map(([status, value]) => (
+                                        <ToggleButton key={status} value={status}>
+                                            {value}
+                                        </ToggleButton>
+                                    ))}
+                                </ToggleButtonGroup>
                             ),
                         }}
                     />
@@ -104,10 +139,13 @@ const AppBarContent = (props: Props) => {
     );
 };
 
-const mapStateToProps = () => ({});
+const mapStateToProps = (state: AppState) => ({
+    repairingStatus: state.miscellaneous.repairingStatus,
+});
 
 const mapDispatchToProps = (dispatch: Dispatch<AnyAction>) => ({
     search: bindActionCreators(setSearchValue, dispatch),
+    searchByRepairingStatus: bindActionCreators(setRepairingStatus, dispatch),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(AppBarContent);

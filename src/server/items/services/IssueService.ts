@@ -24,26 +24,10 @@ export class IssueService implements IssueServiceContract {
     async createIssue(inputs: ICreateIssue): Promise<Issue> {
         await this.validator.validate(inputs, CreateIssueValidator);
 
-        const {
-            issue,
-            issueType,
-            approximateTimeToFix,
-            isFixedTime,
-            approximateCostToFix,
-            isFixedCost,
-        } = inputs;
+        const { issue } = inputs;
 
-        return this.issueRepository.firstOrCreate(
-            {
-                issue,
-            },
-            {
-                issueType,
-                approximateTimeToFix,
-                isFixedTime,
-                approximateCostToFix,
-                isFixedCost,
-            },
-        );
+        return this.issueRepository.firstOrCreate({
+            issue,
+        });
     }
 }

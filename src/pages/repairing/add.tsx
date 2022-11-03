@@ -9,6 +9,8 @@ import {
     FilterOptionsState,
     Grid,
     InputAdornment,
+    Stack,
+    Switch,
     TextField,
     Typography,
 } from '@mui/material';
@@ -32,17 +34,25 @@ import {
 } from 'lodash';
 import { Fragment, useEffect, useState, MouseEvent } from 'react';
 import {
+    Accessory,
     Brand,
     BrandModel,
     Customer,
     DATE_TIME_FORMAT,
     Issue,
+    Locality,
     Pagination,
 } from '@app/shared';
 import DatePickerWrapper from '@app/client/@core/styles/libs/react-datepicker';
 import {
     CalendarMonthOutlined,
     CurrencyRupeeOutlined,
+    DevicesOutlined,
+    FormatBoldOutlined,
+    NotesOutlined,
+    PersonOutline,
+    PhoneOutlined,
+    PlaceOutlined,
     QrCodeOutlined,
 } from '@mui/icons-material';
 import moment from 'moment';
@@ -57,14 +67,25 @@ type State<K extends string, T> = {
 
 type Field =
     | 'customer'
+    | 'locality'
     | 'brand'
     | 'issues'
     | 'brandModel'
+    | 'accessories'
+    | 'pointOfContactPhone'
+    | 'pointOfContactName'
     | 'serialNumber'
+    | 'additionalInformation'
     | 'expectedReturnDate'
     | 'expectedRepairingCost';
 
-type Key = 'phone' | 'brandName' | 'modelName' | 'issue';
+type Key =
+    | 'phone'
+    | 'localityName'
+    | 'brandName'
+    | 'modelName'
+    | 'issue'
+    | 'accessoryName';
 
 interface InputValue {
     inputValue?: any;
@@ -81,12 +102,17 @@ type SingleSelectedValue = NonNullable<string | Partial<Customer>> &
 
 interface Body {
     customer: Partial<Customer>;
+    locality: Partial<Locality>;
     brand: Partial<Brand>;
     brandModel: Partial<BrandModel>;
     issues: Partial<Issue>[];
+    accessories: Partial<Accessory>[];
+    pointOfContactName: string | null;
+    pointOfContactPhone: string | null;
     serialNumber: string | null;
     expectedReturnDate: string;
     expectedRepairingCost: number | null;
+    additionalInformation: string | null;
 }
 
 type Errors = {
@@ -100,6 +126,13 @@ const AddItem = () => {
         State<'customers', Customer>
     >({
         customers: [],
+        searchValue: '',
+        isLoading: false,
+    });
+    const [localityState, setLocalityState] = useState<
+        State<'localities', Locality>
+    >({
+        localities: [],
         searchValue: '',
         isLoading: false,
     });
@@ -120,24 +153,43 @@ const AddItem = () => {
         searchValue: '',
         isLoading: false,
     });
+    const [accessoryState, setAccessoryState] = useState<
+        State<'accessories', Accessory>
+    >({
+        accessories: [],
+        searchValue: '',
+        isLoading: false,
+    });
     const [apiBody, setApiBody] = useState<Body>({
         customer: {},
+        locality: {},
         brand: {},
         brandModel: {},
         issues: [],
-        serialNumber: '',
-        expectedRepairingCost: undefined,
+        accessories: [],
+        pointOfContactName: null,
+        pointOfContactPhone: null,
+        serialNumber: null,
+        expectedRepairingCost: null,
         expectedReturnDate: moment().add(1, 'day').toISOString(),
+        additionalInformation: null,
     });
+    const [isPointOfContactDetailsVisible, setIsPointOfContactDetailsVisible] =
+        useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errors, setErrors] = useState<Errors>({
         customer: [],
         brand: [],
         brandModel: [],
         issues: [],
+        accessories: [],
+        locality: [],
+        pointOfContactName: [],
+        pointOfContactPhone: [],
         serialNumber: [],
         expectedReturnDate: [],
         expectedRepairingCost: [],
+        additionalInformation: [],
     });
 
     const fetchCustomers = async (searchValue?: string): Promise<void> => {
@@ -156,6 +208,28 @@ const AddItem = () => {
 
         setCustomerState({
             customers: get(data, 'records', []),
+            pagination: get(data, 'pagination', null),
+            searchValue: searchValue || '',
+            isLoading: false,
+        });
+    };
+
+    const fetchLocalities = async (searchValue?: string): Promise<void> => {
+        if (isUndefined(searchValue)) {
+            setLocalityState({ ...localityState, isLoading: true });
+        }
+
+        const url = `locality${
+            searchValue ? `?searchValue=${searchValue}` : ''
+        }`;
+
+        const { data } = await axios<Pagination<Locality>>({
+            url,
+            method: 'get',
+        });
+
+        setLocalityState({
+            localities: get(data, 'records', []),
             pagination: get(data, 'pagination', null),
             searchValue: searchValue || '',
             isLoading: false,
@@ -202,6 +276,28 @@ const AddItem = () => {
         });
     };
 
+    const fetchAccessories = async (searchValue?: string): Promise<void> => {
+        if (isUndefined(searchValue)) {
+            setAccessoryState({ ...accessoryState, isLoading: true });
+        }
+
+        const url = `accessory${
+            searchValue ? `?searchValue=${searchValue}` : ''
+        }`;
+
+        const { data } = await axios<Pagination<Accessory>>({
+            url,
+            method: 'get',
+        });
+
+        setAccessoryState({
+            accessories: get(data, 'records', []),
+            pagination: get(data, 'pagination', null),
+            searchValue: searchValue || '',
+            isLoading: false,
+        });
+    };
+
     const fetchBrandModels = async (searchValue?: string): Promise<void> => {
         if (isUndefined(searchValue)) {
             setBrandModelState({ ...brandModelState, isLoading: true });
@@ -226,13 +322,27 @@ const AddItem = () => {
 
     useEffect(() => {
         (async () => {
-            await Promise.all([fetchCustomers(), fetchBrands(), fetchIssues()]);
+            await Promise.all([
+                fetchCustomers(),
+                fetchLocalities(),
+                fetchBrands(),
+                fetchIssues(),
+                fetchAccessories(),
+            ]);
         })();
     }, []);
 
     const getOptionLabel = <T,>(option: T, key: Key): string => {
         if (typeof option === 'string') {
             return option;
+        }
+
+        if (key === 'phone' && option[key] && isEmpty(apiBody.customer)) {
+            return `${option[key]} ${get(option, 'firstName', '')} ${get(
+                option,
+                'lastName',
+                '',
+            )}`;
         }
 
         return option[key] || '';
@@ -257,6 +367,15 @@ const AddItem = () => {
                     customerState.searchValue.length > inputValue.length)
             ) {
                 await fetchCustomers(inputValue);
+            }
+
+            if (
+                key === 'localityName' &&
+                localityState.searchValue !== inputValue &&
+                (isExisting ||
+                    localityState.searchValue.length > inputValue.length)
+            ) {
+                await fetchLocalities(inputValue);
             }
 
             if (
@@ -285,11 +404,23 @@ const AddItem = () => {
             ) {
                 await fetchIssues(inputValue);
             }
+
+            if (
+                key === 'accessoryName' &&
+                accessoryState.searchValue !== inputValue &&
+                (isExisting ||
+                    accessoryState.searchValue.length > inputValue.length)
+            ) {
+                await fetchAccessories(inputValue);
+            }
         })();
 
         if (inputValue !== '' && !isExisting) {
             filtered.push({
-                [key]: `Add "${inputValue}"`,
+                [key]:
+                    key === 'phone' && !/[0-9]/g.test(inputValue)
+                        ? `Add new phone`
+                        : `Add "${inputValue}"`,
                 inputValue,
             } as T);
         }
@@ -318,6 +449,7 @@ const AddItem = () => {
 
                 data = isPhoneNumber
                     ? {
+                          ...apiBody.customer,
                           phone: value.inputValue,
                       }
                     : {
@@ -325,6 +457,33 @@ const AddItem = () => {
                           firstName,
                           lastName,
                       };
+            }
+        }
+
+        if (key === 'locality') {
+            if (typeof value === 'string') {
+                data = { localityName: '' };
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = {
+                    localityName: value.inputValue,
+                };
+                console.log(data);
+            }
+        }
+
+        if (key === 'pointOfContactPhone') {
+            if (typeof value === 'string') {
+                data = '';
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = value.inputValue;
+            }
+        }
+
+        if (key === 'pointOfContactName') {
+            if (typeof value === 'string') {
+                data = '';
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = value.inputValue;
             }
         }
 
@@ -373,6 +532,14 @@ const AddItem = () => {
             }
         }
 
+        if (key === 'additionalInformation') {
+            if (typeof value === 'string') {
+                data = '';
+            } else if (value && !isUndefined(value.inputValue)) {
+                data = value.inputValue;
+            }
+        }
+
         setApiBody({
             ...apiBody,
             [key]: data,
@@ -391,6 +558,19 @@ const AddItem = () => {
                 values.pop();
             } else if (values.length && !isUndefined(lastIssue.inputValue)) {
                 last(data)['issue'] = lastIssue.inputValue;
+                delete last(data).inputValue;
+            }
+        }
+
+        if (key === 'accessories') {
+            const lastAccessory = last(values);
+            if (typeof lastAccessory === 'string') {
+                values.pop();
+            } else if (
+                values.length &&
+                !isUndefined(lastAccessory.inputValue)
+            ) {
+                last(data)['accessoryName'] = lastAccessory.inputValue;
                 delete last(data).inputValue;
             }
         }
@@ -436,9 +616,15 @@ const AddItem = () => {
         redirectToRepairingListing(event);
     };
 
-    const redirectToRepairingListing = (event: MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault()
+    const redirectToRepairingListing = (
+        event: MouseEvent<HTMLButtonElement>,
+    ) => {
+        event.preventDefault();
         router.push('/repairing');
+    };
+
+    const togglePointOfContactDetailsVisibility = () => {
+        setIsPointOfContactDetailsVisible(!isPointOfContactDetailsVisible);
     };
 
     useEffect(() => {
@@ -455,7 +641,7 @@ const AddItem = () => {
         <DatePickerWrapper>
             <Card>
                 <CardHeader
-                    title="Add item"
+                    title="Add Repairing"
                     titleTypographyProps={{ variant: 'h6' }}
                 />
                 <Divider sx={{ margin: 0 }} />
@@ -502,7 +688,15 @@ const AddItem = () => {
                                             )}
                                             InputProps={{
                                                 ...params.InputProps,
-                                                type: 'number',
+                                                type: 'text',
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <PhoneOutlined
+                                                            fontSize="small"
+                                                            color="primary"
+                                                        />
+                                                    </InputAdornment>
+                                                ),
                                                 endAdornment: (
                                                     <Fragment>
                                                         {customerState.isLoading ? (
@@ -548,6 +742,179 @@ const AddItem = () => {
                                             inputValue: event.target.value,
                                         })
                                     }
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <PersonOutline
+                                                    fontSize="small"
+                                                    color="primary"
+                                                />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    alignItems="center"
+                                >
+                                    <Typography variant="body2">
+                                        Is different Point of Contact?
+                                    </Typography>
+                                    <Typography variant="body2">No</Typography>
+                                    <Switch
+                                        onChange={
+                                            togglePointOfContactDetailsVisibility
+                                        }
+                                        checked={isPointOfContactDetailsVisible}
+                                    />
+                                    <Typography variant="body2">Yes</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid
+                                item
+                                xs={12}
+                                display={
+                                    isPointOfContactDetailsVisible
+                                        ? null
+                                        : 'none'
+                                }
+                            >
+                                <Typography
+                                    variant="body2"
+                                    sx={{ fontWeight: 600 }}
+                                >
+                                    1.1 Point of Contact Details
+                                </Typography>
+                            </Grid>
+                            <Grid
+                                item
+                                xs={12}
+                                sm={6}
+                                display={
+                                    isPointOfContactDetailsVisible
+                                        ? null
+                                        : 'none'
+                                }
+                            >
+                                <TextField
+                                    label="Name"
+                                    type="text"
+                                    variant="outlined"
+                                    fullWidth={true}
+                                    error={!isEmpty(errors.pointOfContactName)}
+                                    helperText={first(
+                                        errors.pointOfContactName,
+                                    )}
+                                    value={apiBody.pointOfContactName || ''}
+                                    onChange={(event) =>
+                                        handleChange('pointOfContactName', {
+                                            inputValue: event.target.value,
+                                        })
+                                    }
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <PersonOutline
+                                                    fontSize="small"
+                                                    color="primary"
+                                                />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Grid>
+                            <Grid
+                                item
+                                xs={12}
+                                sm={6}
+                                display={
+                                    isPointOfContactDetailsVisible
+                                        ? null
+                                        : 'none'
+                                }
+                            >
+                                <TextField
+                                    label="Phone"
+                                    type="number"
+                                    variant="outlined"
+                                    fullWidth={true}
+                                    error={!isEmpty(errors.pointOfContactPhone)}
+                                    helperText={first(
+                                        errors.pointOfContactPhone,
+                                    )}
+                                    value={apiBody.pointOfContactPhone || ''}
+                                    onChange={(event) =>
+                                        handleChange('pointOfContactPhone', {
+                                            inputValue: event.target.value,
+                                        })
+                                    }
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <PhoneOutlined
+                                                    fontSize="small"
+                                                    color="primary"
+                                                />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Autocomplete
+                                    freeSolo={true}
+                                    value={apiBody.locality}
+                                    options={localityState.localities}
+                                    getOptionLabel={(option) =>
+                                        getOptionLabel(option, 'localityName')
+                                    }
+                                    filterOptions={(options, state) =>
+                                        filterOptions(
+                                            options,
+                                            state,
+                                            'localityName',
+                                        )
+                                    }
+                                    onChange={(event, value) =>
+                                        handleChange('locality', value)
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Locality"
+                                            error={!isEmpty(errors.locality)}
+                                            helperText={first(errors.locality)}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                type: 'text',
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <PlaceOutlined
+                                                            fontSize="small"
+                                                            color="primary"
+                                                        />
+                                                    </InputAdornment>
+                                                ),
+                                                endAdornment: (
+                                                    <Fragment>
+                                                        {localityState.isLoading ? (
+                                                            <CircularProgress
+                                                                color="inherit"
+                                                                size={20}
+                                                            />
+                                                        ) : null}
+                                                        {
+                                                            params.InputProps
+                                                                .endAdornment
+                                                        }
+                                                    </Fragment>
+                                                ),
+                                            }}
+                                        />
+                                    )}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -585,6 +952,14 @@ const AddItem = () => {
                                             InputProps={{
                                                 ...params.InputProps,
                                                 type: 'text',
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <FormatBoldOutlined
+                                                            fontSize="small"
+                                                            color="primary"
+                                                        />
+                                                    </InputAdornment>
+                                                ),
                                                 endAdornment: (
                                                     <Fragment>
                                                         {brandState.isLoading ? (
@@ -633,6 +1008,14 @@ const AddItem = () => {
                                             InputProps={{
                                                 ...params.InputProps,
                                                 type: 'text',
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <DevicesOutlined
+                                                            fontSize="small"
+                                                            color="primary"
+                                                        />
+                                                    </InputAdornment>
+                                                ),
                                                 endAdornment: (
                                                     <Fragment>
                                                         {brandModelState.isLoading ? (
@@ -680,7 +1063,7 @@ const AddItem = () => {
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            label="Issue"
+                                            label="Issues"
                                             error={!isEmpty(errors.issues)}
                                             helperText={first(errors.issues)}
                                             InputProps={{
@@ -722,11 +1105,14 @@ const AddItem = () => {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <QrCodeOutlined fontSize="small" />
+                                                <QrCodeOutlined
+                                                    fontSize="small"
+                                                    color="primary"
+                                                />
                                             </InputAdornment>
                                         ),
                                     }}
-                                    value={apiBody.serialNumber}
+                                    value={apiBody.serialNumber || ''}
                                     error={!isEmpty(errors.serialNumber)}
                                     helperText={first(errors.serialNumber)}
                                     onChange={(event) =>
@@ -768,7 +1154,10 @@ const AddItem = () => {
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
-                                                    <CalendarMonthOutlined fontSize="small" />
+                                                    <CalendarMonthOutlined
+                                                        fontSize="small"
+                                                        color="primary"
+                                                    />
                                                 </InputAdornment>
                                             ),
                                         }}
@@ -784,11 +1173,14 @@ const AddItem = () => {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <CurrencyRupeeOutlined fontSize="small" />
+                                                <CurrencyRupeeOutlined
+                                                    fontSize="small"
+                                                    color="primary"
+                                                />
                                             </InputAdornment>
                                         ),
                                     }}
-                                    value={apiBody.expectedRepairingCost}
+                                    value={apiBody.expectedRepairingCost || ''}
                                     error={
                                         !isEmpty(errors.expectedRepairingCost)
                                     }
@@ -800,6 +1192,92 @@ const AddItem = () => {
                                             inputValue: event.target.value,
                                         })
                                     }
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Additional Information"
+                                    type="text"
+                                    variant="outlined"
+                                    fullWidth={true}
+                                    multiline={true}
+                                    maxRows={2}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <NotesOutlined
+                                                    fontSize="small"
+                                                    color="primary"
+                                                />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    value={apiBody.additionalInformation || ''}
+                                    error={
+                                        !isEmpty(errors.additionalInformation)
+                                    }
+                                    helperText={first(
+                                        errors.additionalInformation,
+                                    )}
+                                    onChange={(event) =>
+                                        handleChange('additionalInformation', {
+                                            inputValue: event.target.value,
+                                        })
+                                    }
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Autocomplete
+                                    multiple={true}
+                                    freeSolo={true}
+                                    disableCloseOnSelect={true}
+                                    limitTags={10}
+                                    value={apiBody.accessories}
+                                    options={accessoryState.accessories}
+                                    getOptionLabel={(option) =>
+                                        getOptionLabel(option, 'accessoryName')
+                                    }
+                                    filterOptions={(option, state) =>
+                                        filterOptions(
+                                            option,
+                                            state,
+                                            'accessoryName',
+                                        )
+                                    }
+                                    onChange={(event, value) =>
+                                        handleMultipleChange(
+                                            'accessories',
+                                            value,
+                                        )
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Accessories"
+                                            error={!isEmpty(errors.accessories)}
+                                            helperText={first(
+                                                errors.accessories,
+                                            )}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                type: 'text',
+                                                endAdornment: (
+                                                    <Fragment>
+                                                        {accessoryState.isLoading ? (
+                                                            <CircularProgress
+                                                                color="inherit"
+                                                                size={20}
+                                                            />
+                                                        ) : null}
+                                                        {
+                                                            params.InputProps
+                                                                .endAdornment
+                                                        }
+                                                    </Fragment>
+                                                ),
+                                            }}
+                                        />
+                                    )}
                                 />
                             </Grid>
                             <Grid

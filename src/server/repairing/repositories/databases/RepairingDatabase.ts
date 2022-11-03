@@ -1,14 +1,17 @@
 import { Repairing } from '../../models';
 import { Injectable } from '@nestjs/common';
 import {
+    DATABASE_DATE_TIME_FORMAT,
     Pagination,
     Repairing as IRepairing,
     RepairingDetails,
     REPAIRING_STATUS,
 } from '@app/shared';
-import { IGetRepairing } from '../../interfaces';
-import { RepairingRepositoryContract } from '../contracts';
+import { IGetRepairing, IGetRepairingDetails } from '../../interfaces';
+import type { RepairingRepositoryContract } from '../contracts';
 import { DatabaseRepository, InjectModel } from '@app/server/core';
+import moment from 'moment';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RepairingRepositoryDatabase
@@ -18,42 +21,85 @@ export class RepairingRepositoryDatabase
     @InjectModel(Repairing)
     model: Repairing;
 
+    constructor(private config: ConfigService) {
+        super();
+    }
+
     async getRepairing(
         inputs: IGetRepairing,
     ): Promise<Pagination<RepairingDetails>> {
-        const { limit, page, searchValue } = inputs;
+        const { limit, page, searchValue, status } = inputs;
+
+        const { defaultReturnDateDuration } = this.config.get('setting');
+
         const repairingRecords = await this.query()
             .withGraphJoined(
                 `[
                     customer(defaultSelects),
+                    locality(defaultSelects),
                     brand(defaultSelects),
                     brandModel(defaultSelects),
                 ]`,
             )
+            .where('repairing.status', status || REPAIRING_STATUS.PENDING)
             .modify((query) => {
                 if (searchValue) {
-                    query
-                        .where('repairing.id', 'like', `%${searchValue}%`)
-                        .orWhere('brand.brandName', 'like', `%${searchValue}%`)
-                        .orWhere(
-                            'brandModel.modelName',
-                            'like',
-                            `%${searchValue}%`,
-                        )
-                        .orWhere(
-                            'customer.firstName',
-                            'like',
-                            `%${searchValue}%`,
-                        )
-                        .orWhere(
-                            'customer.lastName',
-                            'like',
-                            `%${searchValue}%`,
-                        )
-                        .orWhere('customer.phone', 'like', `%${searchValue}%`);
+                    query.where((query) => {
+                        query
+                            .where('repairing.id', 'like', `%${searchValue}%`)
+                            .orWhere(
+                                'repairing.serialNumber',
+                                'like',
+                                `%${searchValue}%`,
+                            )
+                            .orWhere(
+                                'brand.brandName',
+                                'like',
+                                `%${searchValue}%`,
+                            )
+                            .orWhere(
+                                'brandModel.modelName',
+                                'like',
+                                `%${searchValue}%`,
+                            )
+                            .orWhere(
+                                'customer.firstName',
+                                'like',
+                                `%${searchValue}%`,
+                            )
+                            .orWhere(
+                                'customer.lastName',
+                                'like',
+                                `%${searchValue}%`,
+                            )
+                            .orWhere(
+                                'customer.phone',
+                                'like',
+                                `%${searchValue}%`,
+                            );
+                    });
                 }
             })
-            .orderBy('status', 'asc')
+            .modify((query) => {
+                if (!status && !searchValue) {
+                    query.whereRaw(`
+                        CASE
+                            WHEN repairing.is_pinned = 1
+                            THEN TRUE
+                            ELSE repairing.expected_return_date BETWEEN
+                                '${moment()
+                                    .subtract(defaultReturnDateDuration, 'days')
+                                    .startOf('day')
+                                    .format(DATABASE_DATE_TIME_FORMAT)}'
+                                AND '${moment()
+                                    .add(defaultReturnDateDuration, 'days')
+                                    .endOf('day')
+                                    .format(DATABASE_DATE_TIME_FORMAT)}'
+                        END
+                    `);
+                }
+            })
+            .orderBy('repairing.status', 'asc')
             .orderByRaw(
                 `CASE
                     WHEN repairing.status = ${REPAIRING_STATUS.PENDING}
@@ -72,7 +118,7 @@ export class RepairingRepositoryDatabase
                 ]`,
             )
             .whereIn(
-                'id',
+                'repairing.id',
                 repairingRecords.records.map(
                     (repairingRecord) => repairingRecord.id,
                 ),
@@ -88,5 +134,23 @@ export class RepairingRepositoryDatabase
             })),
             pagination: repairingRecords.pagination,
         };
+    }
+
+    async getRepairingDetails(
+        inputs: IGetRepairingDetails,
+    ): Promise<RepairingDetails> {
+        const { id } = inputs;
+
+        return this.query()
+            .withGraphFetched(
+                `[
+                    customer(defaultSelects),
+                    locality(defaultSelects),
+                    brand(defaultSelects),
+                    brandModel(defaultSelects),
+                    issues(defaultSelects),
+                ]`,
+            )
+            .findById(id);
     }
 }

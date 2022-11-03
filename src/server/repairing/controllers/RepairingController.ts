@@ -5,6 +5,7 @@ import type { RepairingServiceContract } from '../services';
 import {
     ICreateRepairing,
     IGetRepairing,
+    IGetRepairingDetails,
     IUpdateRepairing,
 } from '../interfaces';
 import { Controller, Get, Post, Patch, Inject, Req, Res } from '@nestjs/common';
@@ -30,6 +31,19 @@ export class RepairingController extends ApiController {
         return res.success(repairing);
     }
 
+    @Get(':id')
+    async getRepairingDetails(
+        @Req() req: Request,
+        @Res() res: Response,
+    ): Promise<Response> {
+        const inputs = req.all<IGetRepairingDetails>();
+
+        const repairingDetails =
+            await this.repairingService.getRepairingDetails(inputs);
+
+        return res.success(repairingDetails);
+    }
+
     @Post('')
     async createRepairing(
         @Req() req: Request,
@@ -42,7 +56,7 @@ export class RepairingController extends ApiController {
         return res.noContent();
     }
 
-    @Patch(':repairingId')
+    @Patch(':id')
     async updateRepairing(
         @Req() req: Request,
         @Res() res: Response,

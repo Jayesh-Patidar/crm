@@ -6,12 +6,7 @@ export class Issue extends Model {
 
     static modifiers: Modifiers<AnyQueryBuilder> = {
         defaultSelects(query) {
-            query.select(
-                'issues.id',
-                'issues.issue',
-                'issues.issueType',
-                'issues.approximateTimeToFix',
-            );
+            query.select('issues.id', 'issues.issue');
         },
 
         searchIssues(query, searchValue: string) {

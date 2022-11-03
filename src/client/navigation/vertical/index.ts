@@ -1,13 +1,13 @@
 import { VerticalNavItemsType } from '@app/client/@core/layouts';
-import { HomeOutlined, HandymanOutlined } from '@mui/icons-material';
+import { HandymanOutlined } from '@mui/icons-material';
 
 const navigation = (): VerticalNavItemsType => {
     return [
-        {
-            title: 'Dashboard',
-            icon: HomeOutlined,
-            path: '/',
-        },
+        // {
+        //     title: 'Dashboard',
+        //     icon: HomeOutlined,
+        //     path: '/',
+        // },
         {
             title: 'Repairing',
             icon: HandymanOutlined,

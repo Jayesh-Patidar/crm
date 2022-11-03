@@ -3,9 +3,9 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
     return knex.schema.createTable('customers', (table) => {
         table.bigIncrements();
-        table.string('firstName', 50);
-        table.string('lastName', 50).nullable();
-        table.string('phone', 15).unique();
+        table.string('firstName', 50).index();
+        table.string('lastName', 50).nullable().index();
+        table.string('phone', 15).unique().index();
         table
             .timestamp('created_at')
             .notNullable()

@@ -3,8 +3,8 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
     return knex.schema.createTable('brand_models', (table) => {
         table.bigIncrements();
-        table.bigInteger('brand_id').unsigned().notNullable();
-        table.string('model_name');
+        table.bigInteger('brand_id').unsigned().notNullable().index();
+        table.string('model_name').index();
         table
             .timestamp('created_at')
             .notNullable()

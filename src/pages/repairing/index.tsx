@@ -19,8 +19,14 @@ import {
     CloseOutlined,
     CurrencyRupeeOutlined,
     Done,
+    HeadphonesBatteryOutlined,
+    NotesOutlined,
     PersonOutline,
     PhoneOutlined,
+    PlaceOutlined,
+    PrintOutlined,
+    PushPin,
+    PushPinOutlined,
 } from '@mui/icons-material';
 import { Masonry } from '@mui/lab';
 import {
@@ -42,6 +48,7 @@ import {
     RadioGroup,
     Skeleton,
     SkeletonProps,
+    Stack,
     styled,
     TextField,
     Tooltip,
@@ -58,6 +65,8 @@ import { first, isEmpty, padStart, truncate } from 'lodash';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { connect } from 'react-redux';
+import ReactToPrint from 'react-to-print';
+import RepairingDetailsComponent from './[id]';
 
 const StyledBox = styled(Box)<BoxProps>(({ theme }) => ({
     [theme.breakpoints.up('sm')]: {
@@ -124,6 +133,7 @@ const CardSkeleton = ({ count }: CardSkeletonProps) => (
 interface RepairingProps {
     searchValue: string;
     search: ActionCreatorWithOptionalPayload<string, string>;
+    searchRepairingStatus: string | null;
 }
 
 type ModalAction = 'repaired' | 'cancelled';
@@ -131,15 +141,21 @@ type ModalAction = 'repaired' | 'cancelled';
 interface Body {
     status: number;
     actualRepairingCost: string | null;
+    remarks: string | null;
 }
 
 type Errors = {
     [key in keyof Body]?: string[];
 };
 
-const Repairing = ({ searchValue, search }: RepairingProps) => {
+const Repairing = ({
+    searchValue,
+    search,
+    searchRepairingStatus,
+}: RepairingProps) => {
     const router = useRouter();
     const { axios } = useAxios();
+    const componentRef = useRef([]);
     const [repairingRecords, setRepairingRecords] = useState<
         RepairingDetails[]
     >([]);
@@ -153,6 +169,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
     const [actualRepairingCost, setActualRepairingCost] = useState<
         number | null
     >(null);
+    const [remarks, setRemarks] = useState<string | null>(null);
     const [errors, setErrors] = useState<Errors>({
         actualRepairingCost: [],
         status: [],
@@ -173,6 +190,12 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                 url.indexOf('?') > -1 ? `&${searchQuery}` : `?${searchQuery}`;
         }
 
+        if (searchRepairingStatus) {
+            const statusQuery = `status=${searchRepairingStatus}`;
+            url +=
+                url.indexOf('?') > -1 ? `&${statusQuery}` : `?${statusQuery}`;
+        }
+
         const { data } = await axios<Pagination<RepairingDetails>>({
             method: 'get',
             url,
@@ -191,7 +214,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
 
     useEffect(() => {
         (async () => await fetchRepairingRecords(true))();
-    }, [searchValue]);
+    }, [searchValue, searchRepairingStatus]);
 
     const observer = useRef(null);
     const lastElementRef = useCallback(
@@ -237,6 +260,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
         });
         setRepairingStatus(null);
         setActualRepairingCost(null);
+        setRemarks(null);
     };
 
     const handleStatusUpdate = async () => {
@@ -244,6 +268,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
             status: repairingStatus,
             actualRepairingCost:
                 (actualRepairingCost && actualRepairingCost.toString()) || null,
+            remarks,
         };
         const { error } = await axios({
             url: `repairing/${repairingId}`,
@@ -261,6 +286,21 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
         await fetchRepairingRecords(true);
     };
 
+    const handleCardPinning = async (
+        repairingId: number,
+        isPinned: boolean,
+    ) => {
+        await axios({
+            url: `repairing/${repairingId}`,
+            method: 'patch',
+            data: {
+                isPinned,
+            },
+        });
+
+        await fetchRepairingRecords(true);
+    };
+
     const handleAddItem = () => {
         router.push('/repairing/add');
     };
@@ -274,13 +314,84 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                             <Grid container>
                                 <Grid item xs={12}>
                                     <CardContent sx={{ paddingBottom: 0 }}>
-                                        <Typography variant="body2">
-                                            {`#${padStart(
-                                                `${repairingRecord.id}`,
-                                                4,
-                                                '0',
-                                            )}`}
-                                        </Typography>
+                                        <Stack
+                                            direction="row"
+                                            justifyContent="space-between"
+                                        >
+                                            <Typography variant="body2">
+                                                {`#${padStart(
+                                                    `${repairingRecord.id}`,
+                                                    4,
+                                                    '0',
+                                                )}`}
+                                            </Typography>
+                                            <Stack direction="row" spacing={2}>
+                                                <ReactToPrint
+                                                    trigger={() => (
+                                                        <Tooltip
+                                                            title="Print"
+                                                            placement="bottom-start"
+                                                        >
+                                                            <PrintOutlined
+                                                                fontSize="small"
+                                                                color="primary"
+                                                                sx={{
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            />
+                                                        </Tooltip>
+                                                    )}
+                                                    content={() =>
+                                                        componentRef.current[
+                                                            index
+                                                        ]
+                                                    }
+                                                />
+                                                <Box sx={{ display: 'none' }}>
+                                                    <RepairingDetailsComponent
+                                                        repairingId={
+                                                            repairingRecord.id
+                                                        }
+                                                        ref={(el) =>
+                                                            (componentRef.current[
+                                                                index
+                                                            ] = el)
+                                                        }
+                                                    />
+                                                </Box>
+                                                {repairingRecord.status ===
+                                                REPAIRING_STATUS.PENDING ? (
+                                                    <Tooltip
+                                                        title="Pin this to view"
+                                                        placement="bottom-start"
+                                                        onClick={() =>
+                                                            handleCardPinning(
+                                                                repairingRecord.id,
+                                                                !repairingRecord.isPinned,
+                                                            )
+                                                        }
+                                                    >
+                                                        {repairingRecord.isPinned ? (
+                                                            <PushPin
+                                                                color="primary"
+                                                                fontSize="small"
+                                                                sx={{
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <PushPinOutlined
+                                                                color="primary"
+                                                                fontSize="small"
+                                                                sx={{
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </Tooltip>
+                                                ) : null}
+                                            </Stack>
+                                        </Stack>
                                         <Typography
                                             variant="h6"
                                             sx={{
@@ -424,6 +535,101 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                             }}
                                         />
                                         <Grid container spacing={4}>
+                                            {repairingRecord.pointOfContactName ? (
+                                                <Grid item xs={12}>
+                                                    <Box>
+                                                        <Tooltip
+                                                            title="Contact Person Name"
+                                                            placement="bottom-start"
+                                                        >
+                                                            <Box
+                                                                sx={{
+                                                                    display:
+                                                                        'flex',
+                                                                    alignItem:
+                                                                        'center',
+                                                                }}
+                                                            >
+                                                                <PersonOutline
+                                                                    sx={{
+                                                                        color: 'primary.main',
+                                                                        marginRight: 2.75,
+                                                                    }}
+                                                                    fontSize="small"
+                                                                />
+                                                                <Typography variant="body2">
+                                                                    {
+                                                                        repairingRecord.pointOfContactName
+                                                                    }
+                                                                </Typography>
+                                                            </Box>
+                                                        </Tooltip>
+                                                    </Box>
+                                                </Grid>
+                                            ) : null}
+                                            {repairingRecord.pointOfContactPhone ? (
+                                                <Grid item xs={12}>
+                                                    <Box>
+                                                        <Tooltip
+                                                            title="Contact Person Phone"
+                                                            placement="bottom-start"
+                                                        >
+                                                            <Box
+                                                                sx={{
+                                                                    display:
+                                                                        'flex',
+                                                                    alignItem:
+                                                                        'center',
+                                                                }}
+                                                            >
+                                                                <PhoneOutlined
+                                                                    sx={{
+                                                                        color: 'primary.main',
+                                                                        marginRight: 2.75,
+                                                                    }}
+                                                                    fontSize="small"
+                                                                />
+                                                                <Typography variant="body2">
+                                                                    {
+                                                                        repairingRecord.pointOfContactPhone
+                                                                    }
+                                                                </Typography>
+                                                            </Box>
+                                                        </Tooltip>
+                                                    </Box>
+                                                </Grid>
+                                            ) : null}
+                                            <Grid item xs={12}>
+                                                <Box>
+                                                    <Tooltip
+                                                        title="Locality"
+                                                        placement="bottom-start"
+                                                    >
+                                                        <Box
+                                                            sx={{
+                                                                display: 'flex',
+                                                                alignItem:
+                                                                    'center',
+                                                            }}
+                                                        >
+                                                            <PlaceOutlined
+                                                                sx={{
+                                                                    color: 'primary.main',
+                                                                    marginRight: 2.75,
+                                                                }}
+                                                                fontSize="small"
+                                                            />
+                                                            <Typography variant="body2">
+                                                                {
+                                                                    repairingRecord
+                                                                        .locality
+                                                                        .localityName
+                                                                }
+                                                            </Typography>
+                                                        </Box>
+                                                    </Tooltip>
+                                                </Box>
+                                            </Grid>
                                             <Grid item xs={12}>
                                                 <Box>
                                                     <Tooltip
@@ -536,7 +742,6 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                                 >
                                                     <Box
                                                         sx={{
-                                                            mb: 6.75,
                                                             display: 'flex',
                                                             alignItem: 'center',
                                                         }}
@@ -550,13 +755,13 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                                         />
                                                         <Typography variant="body2">
                                                             {getFormattedAmount(
-                                                                repairingRecord.actualRepairingCost ||
-                                                                    repairingRecord.expectedRepairingCost,
+                                                                +repairingRecord.actualRepairingCost ||
+                                                                    +repairingRecord.expectedRepairingCost,
                                                             )}
                                                         </Typography>
                                                         {repairingRecord.actualRepairingCost &&
-                                                            repairingRecord.actualRepairingCost -
-                                                                repairingRecord.expectedRepairingCost >
+                                                            +repairingRecord.actualRepairingCost -
+                                                                +repairingRecord.expectedRepairingCost >
                                                                 0 && (
                                                                 <Box
                                                                     sx={{
@@ -576,15 +781,15 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                                                         color="error.main"
                                                                     >
                                                                         {getFormattedAmount(
-                                                                            repairingRecord.actualRepairingCost -
-                                                                                repairingRecord.expectedRepairingCost,
+                                                                            +repairingRecord.actualRepairingCost -
+                                                                                +repairingRecord.expectedRepairingCost,
                                                                         )}
                                                                     </Typography>
                                                                 </Box>
                                                             )}
                                                         {repairingRecord.actualRepairingCost &&
-                                                            repairingRecord.actualRepairingCost -
-                                                                repairingRecord.expectedRepairingCost <
+                                                            +repairingRecord.actualRepairingCost -
+                                                                +repairingRecord.expectedRepairingCost <
                                                                 0 && (
                                                                 <Box
                                                                     sx={{
@@ -604,8 +809,8 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                                                         color="success.main"
                                                                     >
                                                                         {getFormattedAmount(
-                                                                            repairingRecord.expectedRepairingCost -
-                                                                                repairingRecord.actualRepairingCost,
+                                                                            +repairingRecord.expectedRepairingCost -
+                                                                                +repairingRecord.actualRepairingCost,
                                                                         )}
                                                                     </Typography>
                                                                 </Box>
@@ -613,6 +818,64 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                                     </Box>
                                                 </Tooltip>
                                             </Grid>
+                                            {repairingRecord.includedAccessories ? (
+                                                <Grid item xs={12}>
+                                                    <Tooltip
+                                                        title="Accessories"
+                                                        placement="bottom-start"
+                                                    >
+                                                        <Box
+                                                            sx={{
+                                                                display: 'flex',
+                                                                alignItem:
+                                                                    'center',
+                                                            }}
+                                                        >
+                                                            <HeadphonesBatteryOutlined
+                                                                sx={{
+                                                                    color: 'primary.main',
+                                                                    marginRight: 2.75,
+                                                                }}
+                                                                fontSize="small"
+                                                            />
+                                                            <Typography variant="body2">
+                                                                {
+                                                                    repairingRecord.includedAccessories
+                                                                }
+                                                            </Typography>
+                                                        </Box>
+                                                    </Tooltip>
+                                                </Grid>
+                                            ) : null}
+                                            {repairingRecord.additionalInformation ? (
+                                                <Grid item xs={12}>
+                                                    <Tooltip
+                                                        title="Additional Information"
+                                                        placement="bottom-start"
+                                                    >
+                                                        <Box
+                                                            sx={{
+                                                                display: 'flex',
+                                                                alignItem:
+                                                                    'center',
+                                                            }}
+                                                        >
+                                                            <NotesOutlined
+                                                                sx={{
+                                                                    color: 'primary.main',
+                                                                    marginRight: 2.75,
+                                                                }}
+                                                                fontSize="small"
+                                                            />
+                                                            <Typography variant="body2">
+                                                                {
+                                                                    repairingRecord.additionalInformation
+                                                                }
+                                                            </Typography>
+                                                        </Box>
+                                                    </Tooltip>
+                                                </Grid>
+                                            ) : null}
                                         </Grid>
                                     </CardContent>
                                     {repairingRecord.status ===
@@ -620,6 +883,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                         <CardActions className="card-action-dense">
                                             <Box
                                                 sx={{
+                                                    mt: 6.75,
                                                     display: 'flex',
                                                     justifyContent:
                                                         'space-between',
@@ -658,7 +922,10 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                     )}
                                     {repairingRecord.status ===
                                         REPAIRING_STATUS.REPAIRED && (
-                                        <Alert severity="success">
+                                        <Alert
+                                            severity="success"
+                                            sx={{ mt: 6.75 }}
+                                        >
                                             {
                                                 REPAIRING_STATUS_REVERSE[
                                                     repairingRecord.status
@@ -670,13 +937,19 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                         REPAIRING_STATUS.UNSERVICEABLE,
                                         REPAIRING_STATUS.CANCELLED,
                                     ].includes(repairingRecord.status) && (
-                                        <Alert severity="error">
+                                        <Alert
+                                            severity="error"
+                                            sx={{ mt: 6.75 }}
+                                        >
                                             Marked{' '}
                                             {
                                                 REPAIRING_STATUS_REVERSE[
                                                     repairingRecord.status
                                                 ]
                                             }
+                                            {repairingRecord.remarks
+                                                ? ` - "${repairingRecord.remarks}"`
+                                                : ''}
                                         </Alert>
                                     )}
                                     {repairingRecords.length === index + 1 ? (
@@ -704,7 +977,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                 variant="outlined"
                                 fullWidth={true}
                                 autoFocus={true}
-                                value={actualRepairingCost}
+                                value={actualRepairingCost || ''}
                                 error={!isEmpty(errors.actualRepairingCost)}
                                 helperText={first(errors.actualRepairingCost)}
                                 InputProps={{
@@ -724,31 +997,56 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
                                 }
                             />
                         ) : (
-                            <RadioGroup
-                                value={repairingStatus}
-                                onChange={(event) =>
-                                    setRepairingStatus(+event.target.value)
-                                }
-                            >
-                                <FormControlLabel
-                                    control={<Radio />}
-                                    label={
-                                        REPAIRING_STATUS_REVERSE[
-                                            REPAIRING_STATUS.UNSERVICEABLE
-                                        ]
+                            <Box>
+                                <RadioGroup
+                                    value={repairingStatus}
+                                    onChange={(event) =>
+                                        setRepairingStatus(+event.target.value)
                                     }
-                                    value={REPAIRING_STATUS.UNSERVICEABLE}
-                                />
-                                <FormControlLabel
-                                    control={<Radio />}
-                                    label={
-                                        REPAIRING_STATUS_REVERSE[
-                                            REPAIRING_STATUS.CANCELLED
-                                        ]
+                                >
+                                    <FormControlLabel
+                                        control={<Radio />}
+                                        label={
+                                            REPAIRING_STATUS_REVERSE[
+                                                REPAIRING_STATUS.UNSERVICEABLE
+                                            ]
+                                        }
+                                        value={REPAIRING_STATUS.UNSERVICEABLE}
+                                    />
+                                    <FormControlLabel
+                                        control={<Radio />}
+                                        label={
+                                            REPAIRING_STATUS_REVERSE[
+                                                REPAIRING_STATUS.CANCELLED
+                                            ]
+                                        }
+                                        value={REPAIRING_STATUS.CANCELLED}
+                                    />
+                                </RadioGroup>
+                                <TextField
+                                    label="Remarks"
+                                    type="text"
+                                    variant="outlined"
+                                    sx={{ marginTop: 4 }}
+                                    fullWidth={true}
+                                    autoFocus={true}
+                                    multiline={true}
+                                    maxRows={5}
+                                    value={remarks || ''}
+                                    error={!isEmpty(errors.remarks)}
+                                    helperText={first(errors.remarks)}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <NotesOutlined fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    onChange={(event) =>
+                                        setRemarks(event.target.value)
                                     }
-                                    value={REPAIRING_STATUS.CANCELLED}
                                 />
-                            </RadioGroup>
+                            </Box>
                         )}
                     </Box>
                     <Box
@@ -788,6 +1086,7 @@ const Repairing = ({ searchValue, search }: RepairingProps) => {
 
 const mapStateToProps = (state: AppState) => ({
     searchValue: state.miscellaneous.searchValue,
+    searchRepairingStatus: state.miscellaneous.repairingStatus,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<AnyAction>) => ({

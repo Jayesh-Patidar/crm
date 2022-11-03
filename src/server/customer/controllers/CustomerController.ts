@@ -33,8 +33,8 @@ export class CustomerController extends ApiController {
     ): Promise<Response> {
         const inputs = req.all<ICreateCustomer>();
 
-        const customers = await this.customerService.createCustomer(inputs);
+        await this.customerService.createCustomer(inputs);
 
-        return res.success(customers);
+        return res.noContent();
     }
 }

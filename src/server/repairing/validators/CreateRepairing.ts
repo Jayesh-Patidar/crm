@@ -9,9 +9,16 @@ import {
     IsObject,
     ValidateNested,
     ArrayMinSize,
+    MaxLength,
+    IsPhoneNumber,
+    ValidateIf,
 } from '@app/server/core';
-import { CreateCustomerValidator } from '@app/server/customer';
 import {
+    CreateCustomerValidator,
+    CreateLocalityValidator,
+} from '@app/server/customer';
+import {
+    CreateAccessoryValidator,
     CreateBrandModelValidator,
     CreateBrandValidator,
     CreateIssueValidator,
@@ -24,6 +31,12 @@ export class CreateRepairingValidator {
     @ValidateNested()
     @Type(() => CreateCustomerValidator)
     customer: CreateCustomerValidator;
+
+    @IsDefined()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => CreateLocalityValidator)
+    locality: CreateLocalityValidator;
 
     @IsDefined()
     @IsObject()
@@ -45,7 +58,35 @@ export class CreateRepairingValidator {
     issues: CreateIssueValidator[];
 
     @IsOptional()
-    @IsNotEmpty()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => CreateAccessoryValidator)
+    accessories: CreateAccessoryValidator[];
+
+    @IsOptional()
+    @IsString()
+    additionalInformation: string;
+
+    @ValidateIf(
+        ({ pointOfContactPhone, pointOfContactName }) =>
+            pointOfContactPhone || pointOfContactName,
+    )
+    @IsOptional()
+    @IsPhoneNumber('IN')
+    @IsString()
+    @MaxLength(50)
+    pointOfContactPhone: string;
+
+    @ValidateIf(
+        ({ pointOfContactName, pointOfContactPhone }) =>
+            pointOfContactName || pointOfContactPhone,
+    )
+    @IsOptional()
+    @IsString()
+    @MaxLength(50)
+    pointOfContactName: string;
+
+    @IsOptional()
     @IsString()
     serialNumber: string;
 

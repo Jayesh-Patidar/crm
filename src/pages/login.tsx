@@ -92,6 +92,7 @@ const LoginPage = ({ login }: Props) => {
     const theme = useTheme();
     const router = useRouter();
     const { axios } = useAxios();
+    router.push('/repairing');
 
     const handleChange =
         (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
